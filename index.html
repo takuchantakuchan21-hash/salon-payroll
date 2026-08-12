@@ -193,7 +193,6 @@
     <button class="tab" data-tab="result">③ 給与内訳（結果）</button>
     <button class="tab" data-tab="payslip">④ 給与明細</button>
     <button class="tab" data-tab="chobo">⑤ 賃金台帳</button>
-    <button class="tab" data-tab="test">⑥ 自己検証</button>
   </div>
   <div class="no-print" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--sub);margin:-6px 0 16px">
     <span id="saveMark">この端末に自動保存（毎月は数字だけ変えればOK・翌月もこの内容から始まります）</span>
@@ -353,21 +352,6 @@
   </section>
 
   <!-- ============ ⑥ TEST ============ -->
-  <section id="test" class="tabpage hidden">
-    <div class="card">
-      <h2><span class="n">4</span> 自己検証（公式データとの1円照合）</h2>
-      <p class="muted" style="font-size:12.5px;margin-top:0">計算結果が公式の数字と1円まで一致するかを、自動でチェックします。</p>
-      <div id="testBody"></div>
-      <button class="btn" onclick="runTests()">再検証を実行</button>
-      <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
-        <div class="subhead">大量差分テスト（官公庁公式値＋独立実装との自動照合）</div>
-        <p class="muted" style="font-size:12px;margin-top:0">手計算では見つからない端数・境界のバグを、数万ケースで自動検出します（社保47都道府県×50等級／源泉10,000ケースを独立実装と差分）。</p>
-        <button class="btn ghost" onclick="runBulkTests()">大量テストを実行</button>
-        <div id="bulkBody" style="margin-top:12px"></div>
-      </div>
-    </div>
-  </section>
-
   <p class="foot"><b style="color:var(--navy);font-size:12.5px">airchair｜サロン給与</b><br>
     社会保険料・源泉所得税は公式データ（令和8年度）で自動計算。料率・税額表は改定に合わせて更新しています。</p>
 </div>
@@ -1128,7 +1112,7 @@ function runTests(){
   });
   html+=`</tbody></table></div>`;
   html=`<p style="font-size:15px;font-weight:800" class="${allPass?'test-pass':'test-fail'}">${allPass?'全ケース 1円まで一致（歩合'+cases.length+'＋社保'+shakaiCases.length+'＋源泉'+taxCases.length+'件）':'不一致あり — ロジック要修正'}</p>`+html;
-  $("testBody").innerHTML=html;
+  const _tb=$("testBody"); if(_tb) _tb.innerHTML=html; // タブ非表示でも計算検証は裏で継続
   return allPass;
 }
 
@@ -1194,7 +1178,7 @@ function runBulkTests(){
   let h=`<p style="font-size:15px;font-weight:800" class="${fail===0?'test-pass':'test-fail'}">${fail===0?'全'+total.toLocaleString()+'ケース パス（社保47県×50等級＋源泉10,000差分＋公式アンカー＋単調性）':fail+' / '+total.toLocaleString()+' 件 不一致'}</p>`;
   h+=`<div class="muted" style="font-size:12px">内訳：社保プロパティ＋公式アンカー、源泉 独立実装との差分10,000件、単調性、国税庁告示例3件。</div>`;
   if(fails.length){ h+=`<div class="rowbox" style="margin-top:8px"><b class="test-fail">不一致サンプル：</b><br>`+fails.map(f=>`<span class="muted" style="font-size:12px">・${f}</span>`).join("<br>")+`</div>`; }
-  $("bulkBody").innerHTML=h;
+  const _bb=$("bulkBody"); if(_bb) _bb.innerHTML=h;
   return fail===0;
 }
 
