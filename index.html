@@ -504,15 +504,14 @@ function initPref(){
   sel.innerHTML=Object.keys(MINWAGE).map(p=>`<option value="${p}">${p}</option>`).join("");
   sel.value="東京都";
   sel.onchange=applyPref;
-  $("minwageBanner").innerHTML=`<b>最低賃金データ＝${MINWAGE_META.fiscal}</b>（出典：${MINWAGE_META.source}／機械抽出 ${MINWAGE_META.extracted}）。`+
-    `<b>毎年10月頃に改定→要更新。</b>${MINWAGE_META.note} 本ツールは最賃割れを<b>警告するだけ</b>で、最終判断は社労士。`;
+  $("minwageBanner").innerHTML="";
   applyPref();
 }
 function applyPref(){
   const p=$("prefecture").value, rec=MINWAGE[p];
   if(!rec) return;
   $("minWage").value=rec[0];
-  $("prefHint").innerHTML=`${p}：<b>${rec[0]}円</b>（施行 ${rec[1]}・${MINWAGE_META.fiscal}）`;
+  $("prefHint").innerHTML=`${p}：<b>${rec[0]}円/時</b>（${MINWAGE_META.fiscal}）`;
   if(typeof renderStaff==="function") renderStaff();
 }
 
