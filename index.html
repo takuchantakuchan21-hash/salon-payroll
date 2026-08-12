@@ -608,9 +608,11 @@ function techRateFor(cfg, techBase, tenureYears){
 }
 // staff: {name, techIncl, retailIncl, nomCount, nomIncl, tenureYears, workedHours, overtimeHours}
 function calcStaff(cfg, s){
+  const base=(s.base===""||s.base==null)?cfg.baseSalary:num(s.base); // 基本給/手当はスタッフ個別（未設定は店の既定）
   const techBase=toBase(cfg, s.techIncl);
   const retailBase=toBase(cfg, s.retailIncl);
-  const rate=techRateFor(cfg, techBase, s.tenureYears);
+  // 技術歩合率：スタッフ個別の上書きがあれば優先（歩合なし＝0を明示可）。無ければ店の共通ルール
+  const rate=(s.techRateOwn!==""&&s.techRateOwn!=null)?num(s.techRateOwn)/100:techRateFor(cfg, techBase, s.tenureYears);
   const techCommission=techBase*rate;
   const retailCommission=retailBase*cfg.retailRate;
   let nomPay=0;
@@ -620,7 +622,7 @@ function calcStaff(cfg, s){
   const deductTotal=cfg.deductions.reduce((a,x)=>a+x.amount,0);
 
   // 保証給は「基本給＋各歩合」に対して補填（手当は上乗せ）
-  const beforeGuarantee=cfg.baseSalary+techCommission+retailCommission+nomPay;
+  const beforeGuarantee=base+techCommission+retailCommission+nomPay;
   const guaranteeTopUp=Math.max(0, cfg.guarantee-beforeGuarantee);
   const commute=s.commute||0;                          // 非課税通勤手当
   const MIN_EXCLUDE=/家族|扶養|精皆勤|皆勤|通勤|別居|子女/; // 最賃則1条の除外(名称に含めば強制除外＝誤GO防止)
@@ -630,7 +632,7 @@ function calcStaff(cfg, s){
   const shotei=cfg.shotei>0?cfg.shotei:160;
   const commTotal=techCommission+retailCommission+nomPay;        // 歩合総額
   const otIncAllow=cfg.allowances.reduce((a,x)=>a+(x.otInc!==false?x.amount:0),0); // 割増算入の手当(労基則21条)
-  const fixedBaseForOT=cfg.baseSalary+otIncAllow+guaranteeTopUp;// 割増基礎(固定・労基則21条の除外手当は外す)
+  const fixedBaseForOT=base+otIncAllow+guaranteeTopUp;// 割増基礎(固定・労基則21条の除外手当は外す)
   let overtimePay=0, otFixed=0, otComm=0, otAbsorb=0, otSeparate=0;
   if(s.contract!=="業務委託"){
     const otH=s.overtimeHours||0, ngH=s.nightHours||0, hdH=s.holidayHours||0;
@@ -656,7 +658,7 @@ function calcStaff(cfg, s){
   // 最賃＝時間額換算（最賃則2条）：固定給は月所定で除、歩合は総労働時間で除。時間外・割増・通勤/家族/精皆勤は除外
   // 就業地（複数店舗）別の地域別最賃に対応：スタッフに就業地があればその都道府県の最賃を使う
   const staffMin=(s.workPref&&MINWAGE[s.workPref])?MINWAGE[s.workPref][0]:cfg.minWage;
-  const fixedForMin=cfg.baseSalary+minIncAllow+guaranteeTopUp;
+  const fixedForMin=base+minIncAllow+guaranteeTopUp;
   if(s.contract!=="業務委託" && s.workedHours>0){
     const hourly=fixedForMin/shotei + commTotal/s.workedHours;
     const where=s.workPref?`就業地${s.workPref} `:"";
@@ -668,9 +670,9 @@ function calcStaff(cfg, s){
     flags.push({lv:otShortfall>0||otSeparate>0?"bad":"ok",t:`固定残業代 ${yen(fixedOT)}：${extra} を自動加算。実割増合計 ${yen(overtimePay)}。深夜・法定休日はみなしで相殺不可（37条4項/35条）・明確区分は社労士確認`});
   } else if(s.contract!=="業務委託" && overtimePay>0) flags.push({lv:"warn",t:`残業割増 ${yen(overtimePay)}（固定 ${yen(otFixed)}＋歩合 ${yen(otComm)}／時間外1.25・深夜+0.25・法定休日1.35・60h超+0.25）。端数の社内規程は社労士確認`});
   if(s.contract!=="業務委託" && deductTotal>0) flags.push({lv:"warn",t:`天引き ${yen(deductTotal)} は労使協定（労基24条）が前提。社労士確認`});
-  if(s.contract!=="業務委託" && cfg.baseSalary===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保障給なし：労基27条の出来高保障給（労働時間に応じた一定額・平均賃金6割が目安）を要検討・社労士確認`});
+  if(s.contract!=="業務委託" && base===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保障給なし：労基27条の出来高保障給（労働時間に応じた一定額・平均賃金6割が目安）を要検討・社労士確認`});
 
-  return {name:s.name, rate, techBase, retailBase, techCommission, retailCommission, nomPay,
+  return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, nomPay,
     allowTotal, commute, guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
 }
 
@@ -715,7 +717,11 @@ function renderStaff(){
       html+=`</div><div class="rowbox" style="margin-top:2px;font-size:12px;color:var(--sub)">業務委託は<b>報酬（売上×歩合−材料費/場所代）</b>のみ計算します。社会保険・源泉徴収（美容業の委託は原則対象外）・最低賃金は適用しません。<br><span class="flag warn" style="margin-top:6px">偽装請負に注意：実態が雇用なら業務委託にできません。消費税/インボイスの扱いと合わせて社労士・税理士に確認を。</span></div>`;
       c.innerHTML=html; wrap.appendChild(c); return;
     }
-    html+=`</div><details class="adv"><summary>社保・税・台帳の詳細（初回に設定・毎月はそのままでOK）</summary><div class="grid">`;
+    html+=`</div><details class="adv"><summary>社保・税・台帳・個別設定（初回に設定・毎月はそのままでOK）</summary><div class="grid">`;
+    html+=`<div class="subhead group" style="grid-column:1/-1">この人の個別設定（役職で手当・歩合を変える）</div>`;
+    html+=`<div><label>役職（表示用）</label><input value="${s.role||''}" oninput="upd(${i},'role',this.value)" placeholder="例：スタイリスト"></div>`;
+    html+=`<div><label>基本給／手当（個別・円）</label><input value="${s.base||''}" oninput="upd(${i},'base',this.value)" placeholder="空欄=店の既定 ${(cfg.baseSalary||0).toLocaleString()}"><div class="hint">社長=手当のみ／アシ=手当+歩合 等</div></div>`;
+    html+=`<div><label>技術歩合率（個別・%）</label><input value="${s.techRateOwn||''}" oninput="upd(${i},'techRateOwn',this.value)" placeholder="空欄=店ルール"><div class="hint">この人だけ率を変える。0＝歩合なし（社長等）</div></div>`;
     html+=`<div><label>性別（賃金台帳用）</label><select onchange="upd(${i},'gender',this.value)"><option value=""${!s.gender?" selected":""}>—</option><option value="男"${s.gender==="男"?" selected":""}>男</option><option value="女"${s.gender==="女"?" selected":""}>女</option><option value="その他"${s.gender==="その他"?" selected":""}>その他</option></select></div>`;
     html+=`<div><label>就業地（複数店舗の最賃用）</label><select onchange="upd(${i},'workPref',this.value)"><option value=""${!s.workPref?" selected":""}>サロンと同じ</option>${Object.keys(MINWAGE).map(p=>`<option value="${p}"${s.workPref===p?" selected":""}>${p}（${MINWAGE[p][0]}円）</option>`).join("")}</select><div class="hint">別店舗で就業する人だけ設定（最賃はその就業地基準）</div></div>`;
     html+=`<div><label>標準報酬月額（社保・年次固定）</label><select onchange="upd(${i},'stdReward',this.value)">${stdOpts}</select><div class="hint">年金機構「決定通知」の額を選択。9月定時決定・随時改定で更新</div></div>`;
@@ -751,7 +757,7 @@ function renderStaff(){
   });
 }
 function upd(i,k,v){
-  if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref"||k==="bankName"||k==="branchName"||k==="acctType"||k==="acctNo"||k==="acctKana") staff[i][k]=v;
+  if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref"||k==="bankName"||k==="branchName"||k==="acctType"||k==="acctNo"||k==="acctKana"||k==="role"||k==="base"||k==="techRateOwn") staff[i][k]=v;
   else if(k==="age40"||k==="spouse"||k==="shakai"||k==="koyoIns"||k==="sanpq") staff[i][k]=!!v;
   else staff[i][k]=num(v);
   if(k==="birth") renderStaff(); // 年齢バッジ・介護手動チェックの表示更新
@@ -785,7 +791,7 @@ function calcAll(){
   rows.forEach(r=>{
     h+=`<tr>
       <td class="res-name">${r.name}</td>
-      <td>${yen(getConfig().baseSalary)}</td>
+      <td>${yen(r.base)}</td>
       <td>${yen(r.techCommission)}<br><span class="muted">${(r.rate*100).toFixed(1)}%</span></td>
       <td>${yen(r.retailCommission)}</td>
       <td>${yen(r.nomPay)}</td>
@@ -883,7 +889,7 @@ function renderPayslip(cfg,rows){
       <div style="font-size:11.5px;color:var(--sub);margin-bottom:10px">勤怠：勤務 ${s.workDays||0}日／労働 ${s.workedHours||0}時間（うち時間外 ${s.overtimeHours||0}時間）</div>
       <div class="scroll"><table><tbody>
       <tr><th style="text-align:left">支給</th><th></th><th style="text-align:left">控除</th><th></th></tr>
-      <tr><td>基本給</td><td>${yen(cfg.baseSalary)}</td><td>健康保険料</td><td>${yen(sh.health)}</td></tr>
+      <tr><td>基本給</td><td>${yen(r.base)}</td><td>健康保険料</td><td>${yen(sh.health)}</td></tr>
       <tr><td>技術歩合（${(r.rate*100).toFixed(1)}%）</td><td>${yen(r.techCommission)}</td><td>介護保険料${af.kaigo?"":"（対象外）"}</td><td>${yen(sh.kaigo)}</td></tr>
       <tr><td>店販還元</td><td>${yen(r.retailCommission)}</td><td>厚生年金保険料</td><td>${yen(sh.pension)}</td></tr>
       <tr><td>指名</td><td>${yen(r.nomPay)}</td><td>雇用保険料</td><td>${yen(sh.koyo)}</td></tr>
