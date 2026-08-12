@@ -804,6 +804,10 @@ function calcAll(){
     r.flags.forEach(f=>h+=`<span class="flag ${f.lv}">${f.t}</span>`);
     h+=`</td></tr>`;
   });
+  const T={base:0,tech:0,retail:0,nom:0,guar:0,allow:0,gross:0,deduct:0,after:0};
+  rows.forEach(r=>{T.base+=r.base;T.tech+=r.techCommission;T.retail+=r.retailCommission;T.nom+=r.nomPay;T.guar+=r.guaranteeTopUp;T.allow+=r.allowTotal;T.gross+=r.gross;T.deduct+=r.deductTotal;T.after+=r.afterDeduct;});
+  h+=`<tr style="border-top:2px solid var(--navy);background:var(--bg)">
+    <td style="font-weight:800">合計 ${rows.length}名</td><td style="font-weight:800">${yen(T.base)}</td><td style="font-weight:800">${yen(T.tech)}</td><td style="font-weight:800">${yen(T.retail)}</td><td style="font-weight:800">${yen(T.nom)}</td><td style="font-weight:800">${T.guar>0?yen(T.guar):"—"}</td><td style="font-weight:800">${yen(T.allow)}</td><td class="gross" style="font-weight:800">${yen(T.gross)}</td><td style="font-weight:800">${T.deduct>0?"−"+yen(T.deduct):"—"}</td><td style="font-weight:800">${yen(T.after)}</td></tr>`;
   h+=`</tbody></table></div>`;
   h+=`<p class="hint" style="margin-top:12px">※「総支給（額面）」から社会保険料を引いた手取りは「④ 給与明細」で確認できます。残業割増（労基37条）・年末調整は本ツールでは扱いません（社労士／既存給与ソフト）。</p>`;
   $("resultBody").innerHTML=h;
