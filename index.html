@@ -154,6 +154,7 @@
     .card h2,.card .cardsub{display:none}
     .card{box-shadow:none;border:none;padding:0}
     .payslip{break-inside:avoid;box-shadow:none;border:1px solid #ccc}
+    .payslip + .payslip{break-before:page;page-break-before:always}
   }
 </style>
 </head>
@@ -811,7 +812,7 @@ function rmStaff(i){ staff.splice(i,1); renderInput(); }
 let inputMode='card';
 function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); }
 function setInputMode(m){ inputMode=m; const a=$('im-card'),b=$('im-list'); if(a)a.classList.toggle('active',m==='card'); if(b)b.classList.toggle('active',m==='list'); const sl=$('staffList'),st=$('staffTable'); if(sl)sl.style.display=(m==='card')?'':'none'; if(st)st.style.display=(m==='list')?'':'none'; renderInput(); if(window.__loaded)saveState(); }
-function refreshRowTotal(i){ const cfg=getConfig(); const r=calcStaff(cfg,staff[i]); const c=$('rowtot-'+i); if(c)c.textContent=yen(r.gross); const g=$('tabtot'); if(g){ let t=0; staff.forEach(s=>t+=calcStaff(cfg,s).gross); g.textContent=yen(t); } if(window.__loaded)saveState(); }
+function refreshRowTotal(i){ const cfg=getConfig(); const r=calcStaff(cfg,staff[i]); const c=$('rowtot-'+i); if(c)c.textContent=yen(r.gross); const n=$('rownet-'+i); if(n)n.textContent=yen(payslipNums(cfg,staff[i],r).net); const g=$('tabtot'),gn=$('tabnet'); if(g||gn){ let t=0,tn=0; staff.forEach(s=>{const rr=calcStaff(cfg,s); t+=rr.gross; tn+=payslipNums(cfg,s,rr).net;}); if(g)g.textContent=yen(t); if(gn)gn.textContent=yen(tn); } if(window.__loaded)saveState(); }
 /* 一覧式（表）：1人1行・売上等を横に入力→右端に総支給が自動。細かい設定はカード式の「詳細」から */
 function renderStaffTable(){
   const cfg=getConfig(); const cats=(cfg.saleCats||[]).filter(c=>c.name);
@@ -819,7 +820,7 @@ function renderStaffTable(){
   let h=`<div class="scroll"><table style="font-size:13px"><thead><tr><th style="text-align:left">名前</th><th>技術売上</th><th>店販</th>`;
   cats.forEach(c=>h+=`<th>${c.name}</th>`);
   if(cfg.nomModel==='perCount') h+=`<th>指名件数</th>`; else if(cfg.nomModel==='rate') h+=`<th>指名売上</th>`;
-  h+=`<th>勤務日</th><th>労働h</th><th>通勤</th><th>総支給</th><th></th></tr></thead><tbody>`;
+  h+=`<th>勤務日</th><th>労働h</th><th>通勤</th><th>総支給</th><th>手取り</th><th></th></tr></thead><tbody>`;
   staff.forEach((s,i)=>{ const gy=(s.contract==='業務委託'); const r=calcStaff(cfg,s);
     h+=`<tr><td><input value="${s.name||''}" oninput="upd(${i},'name',this.value)" style="width:92px;padding:6px 8px"></td>`;
     h+=`<td>${inp(i,'techIncl',s.techIncl)}</td><td>${inp(i,'retailIncl',s.retailIncl)}</td>`;
@@ -827,11 +828,12 @@ function renderStaffTable(){
     if(cfg.nomModel==='perCount') h+=`<td>${inp(i,'nomCount',s.nomCount,80)}</td>`; else if(cfg.nomModel==='rate') h+=`<td>${inp(i,'nomIncl',s.nomIncl)}</td>`;
     h+=`<td>${gy?'—':inp(i,'workDays',s.workDays,68)}</td><td>${gy?'—':inp(i,'workedHours',s.workedHours,68)}</td><td>${gy?'—':inp(i,'commute',s.commute,88)}</td>`;
     h+=`<td style="text-align:right;font-weight:800;color:var(--navy)" id="rowtot-${i}">${yen(r.gross)}</td>`;
+    h+=`<td style="text-align:right;font-weight:800;color:var(--gold)" id="rownet-${i}">${yen(payslipNums(cfg,s,r).net)}</td>`;
     h+=`<td><button class="del" onclick="rmStaff(${i})">×</button></td></tr>`;
   });
-  let tot=0; staff.forEach(s=>tot+=calcStaff(cfg,s).gross);
+  let tot=0, totNet=0; staff.forEach(s=>{const r2=calcStaff(cfg,s); tot+=r2.gross; totNet+=payslipNums(cfg,s,r2).net;});
   const span=6+cats.length+(cfg.nomModel!=='none'?1:0);
-  h+=`<tr style="border-top:2px solid var(--navy)"><td colspan="${span}" style="text-align:right;font-weight:800">合計 ${staff.length}名</td><td style="text-align:right;font-weight:800" id="tabtot">${yen(tot)}</td><td></td></tr>`;
+  h+=`<tr style="border-top:2px solid var(--navy)"><td colspan="${span}" style="text-align:right;font-weight:800">合計 ${staff.length}名</td><td style="text-align:right;font-weight:800" id="tabtot">${yen(tot)}</td><td style="text-align:right;font-weight:800;color:var(--gold)" id="tabnet">${yen(totNet)}</td><td></td></tr>`;
   h+=`</tbody></table></div><p class="hint" style="margin-top:8px">売上は税込。社保・税・個別歩合・口座など細かい設定は「カード式」の各スタッフ「詳細」から（毎月は触りません）。</p>`;
   $('staffTable').innerHTML=h;
 }
