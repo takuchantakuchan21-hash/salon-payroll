@@ -113,7 +113,26 @@
   .payslip .ph .meta{font-size:11.5px;color:var(--sub)}
   .payslip .net{background:var(--navy);color:#fff;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
   .payslip .net .lb{font-size:12.5px;color:#c7d0e2;font-weight:700}
-  .payslip .net .v{font-size:22px;font-weight:800}
+  .payslip .net .v{font-size:23px;font-weight:800}
+  /* ---- 第2周：数値整列・テーブル可読性・ナビ・配色 ---- */
+  th,td,.kpi b,.payslip .net .v,.gross,.payslip td{font-variant-numeric:tabular-nums}
+  #resultBody thead th{background:var(--blue-soft);color:var(--navy);font-size:11px;letter-spacing:.02em}
+  #resultBody tbody tr:hover td{background:var(--blue-soft)}
+  #resultBody td:last-child{font-weight:800;color:var(--navy)}
+  .kpi div:last-child b,.kpi div:first-child b{color:var(--navy)}
+  .payslip .ph .who{font-size:19px}
+  .payslip .doc-title{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--blue);margin-bottom:3px}
+  .payslip .net{border-left:4px solid var(--gold)}
+  .payslip table th{font-size:12px;color:var(--navy);letter-spacing:.01em}
+  .subhead.group{grid-column:1/-1;margin:8px 0 -2px;color:var(--blue);font-size:11.5px;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+  .subhead.group::after{content:"";flex:1;height:1px;background:var(--line)}
+  @media (max-width:640px){
+    .tabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:12px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex:0 0 auto;white-space:nowrap}
+    .card{padding:20px 18px}
+    .hero h1{font-size:27px}
+  }
   @media print{
     body{background:#fff}
     .hero,.tabs,.trust,.note,.foot,.btnrow,.btn,.no-print{display:none !important}
@@ -664,18 +683,21 @@ function renderStaff(){
     html+=`<div><label>氏名</label><input value="${s.name}" oninput="upd(${i},'name',this.value)"></div>`;
     const gyomu=(s.contract==="業務委託");
     html+=`<div><label>雇用形態</label><select onchange="upd(${i},'contract',this.value);renderStaff()"><option value="雇用"${!gyomu?" selected":""}>雇用（社員・アルバイト）</option><option value="業務委託"${gyomu?" selected":""}>業務委託（面貸し・シェアサロン）</option></select><div class="hint">${gyomu?"報酬＝売上×歩合−材料費等。社保・源泉・最賃は対象外":"社保・源泉・最賃あり"}</div></div>`;
+    html+=`<div class="subhead group">売上</div>`;
     html+=`<div><label>技術売上（税込・円）</label><input type="number" value="${s.techIncl}" oninput="upd(${i},'techIncl',this.value)">${cfg.nomModel==="rate"?'<div class="hint">指名を別率にする場合はここに"指名を除くフリー売上"を入力</div>':''}</div>`;
     html+=`<div><label>店販売上（税込・円）</label><input type="number" value="${s.retailIncl}" oninput="upd(${i},'retailIncl',this.value)"></div>`;
     if(cfg.nomModel==="perCount") html+=`<div><label>指名件数</label><input type="number" value="${s.nomCount}" oninput="upd(${i},'nomCount',this.value)"></div>`;
     if(cfg.nomModel==="rate") html+=`<div><label>指名売上（税込・円）</label><input type="number" value="${s.nomIncl}" oninput="upd(${i},'nomIncl',this.value)"></div>`;
     if(cfg.techModel==="tenure") html+=`<div><label>勤続年数</label><input type="number" value="${s.tenureYears}" oninput="upd(${i},'tenureYears',this.value)"></div>`;
     if(!gyomu){
+    html+=`<div class="subhead group">勤怠</div>`;
     html+=`<div><label>勤務日数（日/月）</label><input type="number" value="${s.workDays}" oninput="upd(${i},'workDays',this.value)"></div>`;
     html+=`<div><label>労働時間（h/月）</label><input type="number" value="${s.workedHours}" oninput="upd(${i},'workedHours',this.value)"></div>`;
     html+=`<div><label>うち時間外（h）</label><input type="number" value="${s.overtimeHours}" oninput="upd(${i},'overtimeHours',this.value)"><div class="hint">法定超の残業。月60h超は1.5倍を自動加算</div></div>`;
     html+=`<div><label>うち深夜（22-5時・h）</label><input type="number" value="${s.nightHours}" oninput="upd(${i},'nightHours',this.value)"><div class="hint">+0.25加算</div></div>`;
     html+=`<div><label>法定休日労働（h）</label><input type="number" value="${s.holidayHours}" oninput="upd(${i},'holidayHours',this.value)"><div class="hint">1.35倍</div></div>`;
     html+=`<div><label>固定残業代（みなし・円）</label><input type="number" value="${s.fixedOT}" oninput="upd(${i},'fixedOT',this.value)"><div class="hint">あれば入力。実割増が超えたら差額を自動清算</div></div>`;
+    html+=`<div class="subhead group">通勤</div>`;
     html+=`<div><label>通勤手当（円/月）</label><input type="number" value="${s.commute}" oninput="upd(${i},'commute',this.value)"><div class="hint">非課税限度まで源泉から除外・超過は自動で課税。社保/雇用は算入</div></div>`;
     html+=`<div><label>通勤手段</label><select onchange="upd(${i},'commuteMode',this.value);renderStaff()"><option value="公共"${s.commuteMode!=="マイカー"?" selected":""}>公共交通（限度15万）</option><option value="マイカー"${s.commuteMode==="マイカー"?" selected":""}>マイカー等（距離別）</option></select></div>`;
     if(s.commuteMode==="マイカー") html+=`<div><label>片道距離（km）</label><input type="number" value="${s.commuteKm}" oninput="upd(${i},'commuteKm',this.value)"><div class="hint">非課税限度 ${yen(commuteLimit("マイカー",s.commuteKm))}</div></div>`;
@@ -813,7 +835,7 @@ function renderPayslip(cfg,rows){
     if(s.contract==="業務委託"){
       const pay=r.gross-r.deductTotal;
       h+=`<div class="payslip">
-        <div class="ph"><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div>
+        <div class="ph"><div><div class="doc-title">報酬明細書</div><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div></div>
           <div class="meta">${cfg.salonName}／${cfg.targetYm||""}分<br>業務委託（報酬）</div></div>
         <div class="scroll"><table><tbody>
         <tr><th style="text-align:left">報酬の内訳</th><th></th></tr>
@@ -848,7 +870,7 @@ function renderPayslip(cfg,rows){
     const deductTotal=sh.total+tax+jumin+r.deductTotal+genkyu;
     const net=r.gross-deductTotal;
     h+=`<div class="payslip">
-      <div class="ph"><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div>
+      <div class="ph"><div><div class="doc-title">給与明細書</div><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div></div>
         <div class="meta">${cfg.salonName}<br>対象期間 ${ymPeriod(cfg.targetYm)}${cfg.payDate?`／支給日 ${cfg.payDate}`:""}<br>${cfg.prefecture}・標準報酬 ${yen(sh.healthStd)}</div></div>
       <div style="font-size:11.5px;color:var(--sub);margin-bottom:10px">勤怠：勤務 ${s.workDays||0}日／労働 ${s.workedHours||0}時間（うち時間外 ${s.overtimeHours||0}時間）</div>
       <div class="scroll"><table><tbody>
