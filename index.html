@@ -306,7 +306,12 @@
     <div class="card">
       <h2><span class="n">2</span> 今月のスタッフ別データ</h2>
       <p class="muted" style="font-size:12.5px;margin-top:0">売上は<b>税込</b>で入力してください（設定に合わせて自動で税抜へ換算します）。</p>
+      <div class="seg-toggle no-print" style="display:inline-flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;margin-bottom:14px">
+        <button id="im-card" class="segbtn active" onclick="setInputMode('card')">カード式（1人ずつ）</button>
+        <button id="im-list" class="segbtn" onclick="setInputMode('list')">一覧式（表で全員）</button>
+      </div>
       <div id="staffList"></div>
+      <div id="staffTable" style="display:none"></div>
       <div class="btnrow">
         <button class="btn ghost" onclick="addStaff()">＋ スタッフを追加</button>
         <button class="btn" onclick="calcAll();switchTab('result')">給与内訳を計算する</button>
@@ -711,7 +716,7 @@ function setPayslipMode(m){ payslipMode=m; const a=$('mode-staff'),b=$('mode-own
 function addStaff(v){
   staff.push(v||{name:"スタッフ"+(staff.length+1), techIncl:0, retailIncl:0, nomCount:0, nomIncl:0, tenureYears:0, workedHours:160, overtimeHours:0,
     contract:"雇用", gender:"", workPref:"", workDays:22, commute:0, commuteMode:"公共", commuteKm:0, nightHours:0, holidayHours:0, fixedOT:0, genkyu:0, bonus:0, bonusPrev:0, bonusRate:0, stdReward:260000, birth:"", hireDate:"", retireDate:"", age40:false, koyoIns:true, sanpq:false, shakai:true, taxCol:"甲", spouse:false, deps:0, taxAdd:0, jutec:0, jumin:0});
-  renderStaff();
+  renderInput();
 }
 function renderStaff(){
   const cfg=getConfig();
@@ -801,7 +806,35 @@ function upd(i,k,v){
   else staff[i][k]=num(v);
   if(k==="birth") renderStaff(); // 年齢バッジ・介護手動チェックの表示更新
 }
-function rmStaff(i){ staff.splice(i,1); renderStaff(); }
+function rmStaff(i){ staff.splice(i,1); renderInput(); }
+/* 入力の見せ方：カード式（1人ずつ）／一覧式（表で全員）。オーナーが選ぶ */
+let inputMode='card';
+function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); }
+function setInputMode(m){ inputMode=m; const a=$('im-card'),b=$('im-list'); if(a)a.classList.toggle('active',m==='card'); if(b)b.classList.toggle('active',m==='list'); const sl=$('staffList'),st=$('staffTable'); if(sl)sl.style.display=(m==='card')?'':'none'; if(st)st.style.display=(m==='list')?'':'none'; renderInput(); if(window.__loaded)saveState(); }
+function refreshRowTotal(i){ const cfg=getConfig(); const r=calcStaff(cfg,staff[i]); const c=$('rowtot-'+i); if(c)c.textContent=yen(r.gross); const g=$('tabtot'); if(g){ let t=0; staff.forEach(s=>t+=calcStaff(cfg,s).gross); g.textContent=yen(t); } if(window.__loaded)saveState(); }
+/* 一覧式（表）：1人1行・売上等を横に入力→右端に総支給が自動。細かい設定はカード式の「詳細」から */
+function renderStaffTable(){
+  const cfg=getConfig(); const cats=(cfg.saleCats||[]).filter(c=>c.name);
+  const inp=(i,f,v,w)=>`<input type="number" value="${v||v===0?v:''}" oninput="upd(${i},'${f}',this.value);refreshRowTotal(${i})" style="width:${w||100}px;padding:6px 8px;text-align:right">`;
+  let h=`<div class="scroll"><table style="font-size:13px"><thead><tr><th style="text-align:left">名前</th><th>技術売上</th><th>店販</th>`;
+  cats.forEach(c=>h+=`<th>${c.name}</th>`);
+  if(cfg.nomModel==='perCount') h+=`<th>指名件数</th>`; else if(cfg.nomModel==='rate') h+=`<th>指名売上</th>`;
+  h+=`<th>勤務日</th><th>労働h</th><th>通勤</th><th>総支給</th><th></th></tr></thead><tbody>`;
+  staff.forEach((s,i)=>{ const gy=(s.contract==='業務委託'); const r=calcStaff(cfg,s);
+    h+=`<tr><td><input value="${s.name||''}" oninput="upd(${i},'name',this.value)" style="width:92px;padding:6px 8px"></td>`;
+    h+=`<td>${inp(i,'techIncl',s.techIncl)}</td><td>${inp(i,'retailIncl',s.retailIncl)}</td>`;
+    cats.forEach((c,ci)=>h+=`<td><input type="number" value="${(s.catSales&&s.catSales[c.name])||''}" oninput="updCat(${i},${ci},this.value);refreshRowTotal(${i})" style="width:100px;padding:6px 8px;text-align:right"></td>`);
+    if(cfg.nomModel==='perCount') h+=`<td>${inp(i,'nomCount',s.nomCount,80)}</td>`; else if(cfg.nomModel==='rate') h+=`<td>${inp(i,'nomIncl',s.nomIncl)}</td>`;
+    h+=`<td>${gy?'—':inp(i,'workDays',s.workDays,68)}</td><td>${gy?'—':inp(i,'workedHours',s.workedHours,68)}</td><td>${gy?'—':inp(i,'commute',s.commute,88)}</td>`;
+    h+=`<td style="text-align:right;font-weight:800;color:var(--navy)" id="rowtot-${i}">${yen(r.gross)}</td>`;
+    h+=`<td><button class="del" onclick="rmStaff(${i})">×</button></td></tr>`;
+  });
+  let tot=0; staff.forEach(s=>tot+=calcStaff(cfg,s).gross);
+  const span=6+cats.length+(cfg.nomModel!=='none'?1:0);
+  h+=`<tr style="border-top:2px solid var(--navy)"><td colspan="${span}" style="text-align:right;font-weight:800">合計 ${staff.length}名</td><td style="text-align:right;font-weight:800" id="tabtot">${yen(tot)}</td><td></td></tr>`;
+  h+=`</tbody></table></div><p class="hint" style="margin-top:8px">売上は税込。社保・税・個別歩合・口座など細かい設定は「カード式」の各スタッフ「詳細」から（毎月は触りません）。</p>`;
+  $('staffTable').innerHTML=h;
+}
 
 /* 設定レベルの安全網警告（料率の適用年月・地域別vs特定最賃） */
 function globalWarn(cfg){
