@@ -44,6 +44,9 @@
   .note[open] summary{border-bottom:1px solid var(--line)}
   .note .body{padding:11px 14px;line-height:1.7}
   .note b{color:var(--warn)}
+  .onboard{display:flex;gap:14px;align-items:center;justify-content:space-between;background:var(--gold-soft);border:1px solid #ecdcae;border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--ink);line-height:1.75}
+  .onboard b{color:var(--navy)}
+  @media(max-width:640px){.onboard{flex-direction:column;align-items:flex-start;gap:10px}}
   /* ---- tabs ---- */
   .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px;position:sticky;top:0;z-index:5;
     background:var(--bg);padding:10px 0 11px;border-bottom:1px solid var(--line)}
@@ -168,6 +171,11 @@
       <button class="btn" onclick="switchTab('input')" style="display:inline-flex;align-items:center;gap:8px">まず触ってみる（② 毎月の入力）<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
       <span class="hint" style="margin:0">サンプルのスタッフ2名が入っています。売上を打つと給与明細まで即計算されます。</span>
     </div>
+  </div>
+
+  <div id="onboard" class="onboard no-print">
+    <div><b>はじめて使う方へ</b>　①「サロン設定」で歩合率など"自分の店のルール"を決める → ②「毎月の入力」でスタッフの売上を入れる → 給与明細が出ます。分からない項目は"自動／おすすめ"のままでOK。まずはサンプルで試し、良ければ「サンプルを消して始める」で自分の店を入れてください。</div>
+    <button class="btn ghost sm" onclick="closeOnboard()" style="flex:none;white-space:nowrap">わかった</button>
   </div>
 
   <details class="note">
@@ -1210,6 +1218,7 @@ function restoreState(o){
   renderStaff();
 }
 function clearSaved(){ try{ localStorage.removeItem('salonPayrollV1'); }catch(e){} location.reload(); }
+function closeOnboard(){ var e=document.getElementById('onboard'); if(e) e.style.display='none'; try{ localStorage.setItem('salonOnboardDone','1'); }catch(_){} }
 function startFresh(){ if(!confirm("サンプル（サンプルサロン・山田・佐藤）を消して、空の状態から始めますか？")) return;
   staff=[]; addStaff(); $("salonName").value=""; $("baseSalary").value="0"; renderStaff(); calcAll(); saveState(); switchTab('setup'); window.scrollTo(0,0); }
 /* ---------- 会計仕訳CSV（給与明細と同じ計算関数で再集計＝数字の出所を一本化） ---------- */
@@ -1315,6 +1324,7 @@ renderStaff();
 runTests();
 /* 保存済みがあれば復元（＝前月の設定・スタッフを引き継ぐ）→以後は変更のたび自動保存 */
 try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ restoreState(JSON.parse(saved)); } }catch(e){}
+try{ if(localStorage.getItem('salonOnboardDone')){ const o=document.getElementById('onboard'); if(o) o.style.display='none'; } }catch(e){}
 window.__loaded=true;
 document.querySelector('.wrap').addEventListener('change', ()=>{ if(window.__loaded) saveState(); });
 </script>
