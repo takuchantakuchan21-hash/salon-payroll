@@ -608,7 +608,7 @@ function techRateFor(cfg, techBase, tenureYears){
 }
 // staff: {name, techIncl, retailIncl, nomCount, nomIncl, tenureYears, workedHours, overtimeHours}
 function calcStaff(cfg, s){
-  const base=(s.base===""||s.base==null)?cfg.baseSalary:num(s.base); // 基本給/手当はスタッフ個別（未設定は店の既定）
+  const base=(s.contract==="業務委託")?0:((s.base===""||s.base==null)?cfg.baseSalary:num(s.base)); // 基本給/手当はスタッフ個別（未設定は店の既定）。業務委託は基本給なし＝報酬のみ
   const techBase=toBase(cfg, s.techIncl);
   const retailBase=toBase(cfg, s.retailIncl);
   // 技術歩合率：スタッフ個別の上書きがあれば優先（歩合なし＝0を明示可）。無ければ店の共通ルール
@@ -623,7 +623,7 @@ function calcStaff(cfg, s){
 
   // 保証給は「基本給＋各歩合」に対して補填（手当は上乗せ）
   const beforeGuarantee=base+techCommission+retailCommission+nomPay;
-  const guaranteeTopUp=Math.max(0, cfg.guarantee-beforeGuarantee);
+  const guaranteeTopUp=(s.contract==="業務委託")?0:Math.max(0, cfg.guarantee-beforeGuarantee); // 保証給は雇用のみ
   const commute=s.commute||0;                          // 非課税通勤手当
   const MIN_EXCLUDE=/家族|扶養|精皆勤|皆勤|通勤|別居|子女/; // 最賃則1条の除外(名称に含めば強制除外＝誤GO防止)
   const minIncAllow=cfg.allowances.reduce((a,x)=>a+((x.minInc!==false && !MIN_EXCLUDE.test(x.name))?x.amount:0),0); // 最賃算入の手当
@@ -650,7 +650,7 @@ function calcStaff(cfg, s){
   const fixedOT=num(s.fixedOT)||0;
   const otShortfall=Math.max(0, otAbsorb-fixedOT);       // 時間外分のみなし超過＝差額支払い要
   const otToGross=fixedOT>0 ? (fixedOT+otShortfall+otSeparate) : overtimePay;
-  const gross=beforeGuarantee+guaranteeTopUp+allowTotal+commute+otToGross; // 額面（残業割増/みなし含む・社保税控除前）
+  const gross=beforeGuarantee+guaranteeTopUp+((s.contract==="業務委託")?0:(allowTotal+commute))+otToGross; // 額面（業務委託は歩合報酬のみ／手当・通勤・保証・割増は雇用のみ）
   const afterDeduct=gross-deductTotal;
 
   // guardrails（労基系は雇用のみ。業務委託は最賃・割増・全額払いの対象外）
@@ -673,7 +673,7 @@ function calcStaff(cfg, s){
   if(s.contract!=="業務委託" && base===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保障給なし：労基27条の出来高保障給（労働時間に応じた一定額・平均賃金6割が目安）を要検討・社労士確認`});
 
   return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, nomPay,
-    allowTotal, commute, guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
+    allowTotal:(s.contract==="業務委託"?0:allowTotal), commute:(s.contract==="業務委託"?0:commute), guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
 }
 
 /* ---------- staff input UI ---------- */
