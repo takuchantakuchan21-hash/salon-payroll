@@ -275,7 +275,12 @@
         </div>
         <div id="nomValBox" class="hidden"><label>指名の単価 / 率</label><input id="nomValue" type="number" value="500"><div class="hint">「1件◯円」なら円、「◯%」なら%</div></div>
       </div>
-      <div class="subhead">固定手当（役職手当・技術手当など）</div>
+      <div class="subhead">追加の売上カテゴリ（ネイル・マツエク・物販など）</div>
+      <div id="saleCatRows"></div>
+      <button class="btn ghost sm" onclick="addSaleCat();if(window.__loaded){renderStaff();saveState();}">＋ 売上カテゴリを追加</button>
+      <div class="hint" style="margin-top:8px">技術・店販の他に歩合を出す売上があれば、名前と率でここに追加。各スタッフの売上は「②毎月の入力」に欄が増えます。</div>
+
+      <div class="subhead" style="margin-top:16px">固定手当（役職手当・技術手当など）</div>
       <div id="allowRows"></div>
       <button class="btn ghost sm" onclick="addAllow()">＋ 手当を追加</button>
 
@@ -554,6 +559,16 @@ function addDeduct(v={name:"",amount:""}){
     <div style="align-self:end"><button class="del" onclick="this.closest('.deduct-row').remove()">× 削除</button></div>`;
   $("deductRows").appendChild(d);
 }
+/* 自由に追加できる売上カテゴリ（ネイル/マツエク/物販等をサロンが名前＋率で作る） */
+function addSaleCat(v={name:"",rate:""}){
+  const d=document.createElement("div"); d.className="grid salecat-row"; d.style.marginBottom="8px";
+  d.innerHTML=`<div><label>カテゴリ名</label><input class="sc-name" value="${v.name}" placeholder="例：ネイル" onchange="if(window.__loaded){renderStaff();calcAll();}"></div>
+    <div><label>還元率（%）</label><input class="sc-rate" type="number" step="0.5" value="${v.rate}" onchange="if(window.__loaded)calcAll();"></div>
+    <div style="align-self:end"><button class="del" onclick="this.closest('.salecat-row').remove();if(window.__loaded){renderStaff();calcAll();saveState();}">× 削除</button></div>`;
+  $("saleCatRows").appendChild(d);
+}
+/* スタッフ別の追加カテゴリ売上（catIndexで参照＝リネームに強い） */
+function updCat(i,ci,v){ const c=(getConfig().saleCats||[])[ci]; if(!c||!c.name) return; staff[i].catSales=staff[i].catSales||{}; staff[i].catSales[c.name]=num(v); if(window.__loaded)saveState(); }
 
 /* ---------- model toggles ---------- */
 $("techModel").onchange=function(){
@@ -589,6 +604,8 @@ function getConfig(){
       otInc:r.querySelector(".a-ot")?r.querySelector(".a-ot").checked:true })),
     deductions:[...document.querySelectorAll(".deduct-row")].map(r=>({
       name:r.querySelector(".d-name").value||"天引き", amount:num(r.querySelector(".d-amt").value) })),
+    saleCats:[...document.querySelectorAll(".salecat-row")].map(r=>({
+      name:r.querySelector(".sc-name").value.trim(), rate:num(r.querySelector(".sc-rate").value)/100 })).filter(c=>c.name),
   };
   return cfg;
 }
@@ -615,6 +632,9 @@ function calcStaff(cfg, s){
   const rate=(s.techRateOwn!==""&&s.techRateOwn!=null)?num(s.techRateOwn)/100:techRateFor(cfg, techBase, s.tenureYears);
   const techCommission=techBase*rate;
   const retailCommission=retailBase*cfg.retailRate;
+  // 追加の売上カテゴリ（ネイル等・サロンが定義）：各カテゴリ 売上(税抜)×率
+  let catCommission=0; const catDetail=[];
+  (cfg.saleCats||[]).forEach(c=>{ const sales=(s.catSales&&s.catSales[c.name])||0; if(sales>0){ const amt=toBase(cfg, sales)*c.rate; catCommission+=amt; catDetail.push({name:c.name, rate:c.rate, amount:amt}); } });
   let nomPay=0;
   if(cfg.nomModel==="perCount") nomPay=s.nomCount*cfg.nomValue;
   else if(cfg.nomModel==="rate") nomPay=toBase(cfg, s.nomIncl)*(cfg.nomValue/100);
@@ -622,7 +642,7 @@ function calcStaff(cfg, s){
   const deductTotal=cfg.deductions.reduce((a,x)=>a+x.amount,0);
 
   // 保証給は「基本給＋各歩合」に対して補填（手当は上乗せ）
-  const beforeGuarantee=base+techCommission+retailCommission+nomPay;
+  const beforeGuarantee=base+techCommission+retailCommission+catCommission+nomPay;
   const guaranteeTopUp=(s.contract==="業務委託")?0:Math.max(0, cfg.guarantee-beforeGuarantee); // 保証給は雇用のみ
   const commute=s.commute||0;                          // 非課税通勤手当
   const MIN_EXCLUDE=/家族|扶養|精皆勤|皆勤|通勤|別居|子女/; // 最賃則1条の除外(名称に含めば強制除外＝誤GO防止)
@@ -630,7 +650,7 @@ function calcStaff(cfg, s){
   const wageForMinWage=beforeGuarantee+guaranteeTopUp+minIncAllow; // 最賃算入＝基本給+歩合+保証+算入手当（通勤/精皆勤/家族/割増は除外）
   // 残業割増（労基37条・時間外のみ自動／深夜・法定休日・月60h超は別途）
   const shotei=cfg.shotei>0?cfg.shotei:160;
-  const commTotal=techCommission+retailCommission+nomPay;        // 歩合総額
+  const commTotal=techCommission+retailCommission+catCommission+nomPay;        // 歩合総額
   const otIncAllow=cfg.allowances.reduce((a,x)=>a+(x.otInc!==false?x.amount:0),0); // 割増算入の手当(労基則21条)
   const fixedBaseForOT=base+otIncAllow+guaranteeTopUp;// 割増基礎(固定・労基則21条の除外手当は外す)
   let overtimePay=0, otFixed=0, otComm=0, otAbsorb=0, otSeparate=0;
@@ -672,7 +692,7 @@ function calcStaff(cfg, s){
   if(s.contract!=="業務委託" && deductTotal>0) flags.push({lv:"warn",t:`天引き ${yen(deductTotal)} は労使協定（労基24条）が前提。社労士確認`});
   if(s.contract!=="業務委託" && base===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保障給なし：労基27条の出来高保障給（労働時間に応じた一定額・平均賃金6割が目安）を要検討・社労士確認`});
 
-  return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, nomPay,
+  return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, catCommission, catDetail, nomPay,
     allowTotal:(s.contract==="業務委託"?0:allowTotal), commute:(s.contract==="業務委託"?0:commute), guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
 }
 
@@ -696,6 +716,7 @@ function renderStaff(){
     html+=`<div class="subhead group">売上</div>`;
     html+=`<div><label>技術売上（税込・円）</label><input type="number" value="${s.techIncl}" oninput="upd(${i},'techIncl',this.value)">${cfg.nomModel==="rate"?'<div class="hint">指名を別率にする場合はここに"指名を除くフリー売上"を入力</div>':''}</div>`;
     html+=`<div><label>店販売上（税込・円）</label><input type="number" value="${s.retailIncl}" oninput="upd(${i},'retailIncl',this.value)"></div>`;
+    (cfg.saleCats||[]).forEach((c,ci)=>{ if(!c.name) return; html+=`<div><label>${c.name}売上（税込・円）</label><input type="number" value="${(s.catSales&&s.catSales[c.name])||''}" oninput="updCat(${i},${ci},this.value)"><div class="hint">${c.name} 還元率 ${(c.rate*100).toFixed(1)}%</div></div>`; });
     if(cfg.nomModel==="perCount") html+=`<div><label>指名件数</label><input type="number" value="${s.nomCount}" oninput="upd(${i},'nomCount',this.value)"></div>`;
     if(cfg.nomModel==="rate") html+=`<div><label>指名売上（税込・円）</label><input type="number" value="${s.nomIncl}" oninput="upd(${i},'nomIncl',this.value)"></div>`;
     if(cfg.techModel==="tenure") html+=`<div><label>勤続年数</label><input type="number" value="${s.tenureYears}" oninput="upd(${i},'tenureYears',this.value)"></div>`;
@@ -786,7 +807,7 @@ function calcAll(){
     <div>天引き合計<b>${yen(totDeduct)}</b></div>
   </div>`;
   h+=`<div class="scroll" style="margin-top:14px"><table><thead><tr>
-    <th>氏名</th><th>基本給</th><th>技術歩合<br>(率)</th><th>店販還元</th><th>指名</th><th>保証補填</th><th>手当</th>
+    <th>氏名</th><th>基本給</th><th>技術歩合<br>(率)</th><th>店販還元</th><th>追加<br>歩合</th><th>指名</th><th>保証補填</th><th>手当</th>
     <th>総支給<br>(額面)</th><th>天引き</th><th>差引</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     h+=`<tr>
@@ -794,20 +815,21 @@ function calcAll(){
       <td>${yen(r.base)}</td>
       <td>${yen(r.techCommission)}<br><span class="muted">${(r.rate*100).toFixed(1)}%</span></td>
       <td>${yen(r.retailCommission)}</td>
+      <td>${r.catCommission>0?yen(r.catCommission):"—"}</td>
       <td>${yen(r.nomPay)}</td>
       <td>${r.guaranteeTopUp>0?yen(r.guaranteeTopUp):"—"}</td>
       <td>${yen(r.allowTotal)}</td>
       <td class="gross">${yen(r.gross)}</td>
       <td>${r.deductTotal>0?"−"+yen(r.deductTotal):"—"}</td>
       <td>${yen(r.afterDeduct)}</td></tr>`;
-    h+=`<tr><td colspan="10" style="text-align:left;padding-top:0;border-bottom:2px solid var(--line)">`;
+    h+=`<tr><td colspan="11" style="text-align:left;padding-top:0;border-bottom:2px solid var(--line)">`;
     r.flags.forEach(f=>h+=`<span class="flag ${f.lv}">${f.t}</span>`);
     h+=`</td></tr>`;
   });
-  const T={base:0,tech:0,retail:0,nom:0,guar:0,allow:0,gross:0,deduct:0,after:0};
-  rows.forEach(r=>{T.base+=r.base;T.tech+=r.techCommission;T.retail+=r.retailCommission;T.nom+=r.nomPay;T.guar+=r.guaranteeTopUp;T.allow+=r.allowTotal;T.gross+=r.gross;T.deduct+=r.deductTotal;T.after+=r.afterDeduct;});
+  const T={base:0,tech:0,retail:0,cat:0,nom:0,guar:0,allow:0,gross:0,deduct:0,after:0};
+  rows.forEach(r=>{T.base+=r.base;T.tech+=r.techCommission;T.retail+=r.retailCommission;T.cat+=r.catCommission;T.nom+=r.nomPay;T.guar+=r.guaranteeTopUp;T.allow+=r.allowTotal;T.gross+=r.gross;T.deduct+=r.deductTotal;T.after+=r.afterDeduct;});
   h+=`<tr style="border-top:2px solid var(--navy);background:var(--bg)">
-    <td style="font-weight:800">合計 ${rows.length}名</td><td style="font-weight:800">${yen(T.base)}</td><td style="font-weight:800">${yen(T.tech)}</td><td style="font-weight:800">${yen(T.retail)}</td><td style="font-weight:800">${yen(T.nom)}</td><td style="font-weight:800">${T.guar>0?yen(T.guar):"—"}</td><td style="font-weight:800">${yen(T.allow)}</td><td class="gross" style="font-weight:800">${yen(T.gross)}</td><td style="font-weight:800">${T.deduct>0?"−"+yen(T.deduct):"—"}</td><td style="font-weight:800">${yen(T.after)}</td></tr>`;
+    <td style="font-weight:800">合計 ${rows.length}名</td><td style="font-weight:800">${yen(T.base)}</td><td style="font-weight:800">${yen(T.tech)}</td><td style="font-weight:800">${yen(T.retail)}</td><td style="font-weight:800">${T.cat>0?yen(T.cat):"—"}</td><td style="font-weight:800">${yen(T.nom)}</td><td style="font-weight:800">${T.guar>0?yen(T.guar):"—"}</td><td style="font-weight:800">${yen(T.allow)}</td><td class="gross" style="font-weight:800">${yen(T.gross)}</td><td style="font-weight:800">${T.deduct>0?"−"+yen(T.deduct):"—"}</td><td style="font-weight:800">${yen(T.after)}</td></tr>`;
   h+=`</tbody></table></div>`;
   h+=`<p class="hint" style="margin-top:12px">※「総支給（額面）」から社会保険料を引いた手取りは「④ 給与明細」で確認できます。残業割増（労基37条）・年末調整は本ツールでは扱いません（社労士／既存給与ソフト）。</p>`;
   $("resultBody").innerHTML=h;
@@ -859,6 +881,7 @@ function renderPayslip(cfg,rows){
         <tr><th style="text-align:left">報酬の内訳</th><th></th></tr>
         <tr><td>技術歩合（${(r.rate*100).toFixed(1)}%）</td><td>${yen(r.techCommission)}</td></tr>
         <tr><td>店販還元</td><td>${yen(r.retailCommission)}</td></tr>
+        ${(r.catDetail||[]).map(c=>`<tr><td>${c.name}（${(c.rate*100).toFixed(1)}%）</td><td>${yen(c.amount)}</td></tr>`).join('')}
         <tr><td>指名</td><td>${yen(r.nomPay)}</td></tr>
         ${r.allowTotal>0?`<tr><td>手当</td><td>${yen(r.allowTotal)}</td></tr>`:""}
         <tr><td>材料費・場所代 等</td><td>${r.deductTotal>0?"−"+yen(r.deductTotal):"—"}</td></tr>
@@ -896,6 +919,7 @@ function renderPayslip(cfg,rows){
       <tr><td>基本給</td><td>${yen(r.base)}</td><td>健康保険料</td><td>${yen(sh.health)}</td></tr>
       <tr><td>技術歩合（${(r.rate*100).toFixed(1)}%）</td><td>${yen(r.techCommission)}</td><td>介護保険料${af.kaigo?"":"（対象外）"}</td><td>${yen(sh.kaigo)}</td></tr>
       <tr><td>店販還元</td><td>${yen(r.retailCommission)}</td><td>厚生年金保険料</td><td>${yen(sh.pension)}</td></tr>
+      ${(r.catDetail||[]).map(c=>`<tr><td>${c.name}（${(c.rate*100).toFixed(1)}%）</td><td>${yen(c.amount)}</td><td></td><td></td></tr>`).join('')}
       <tr><td>指名</td><td>${yen(r.nomPay)}</td><td>雇用保険料</td><td>${yen(sh.koyo)}</td></tr>
       <tr><td>保証補填</td><td>${r.guaranteeTopUp>0?yen(r.guaranteeTopUp):"—"}</td>
         <td>所得税（源泉）<span class="muted">${autoTax!=null?"甲欄・自動":"乙欄・入力"}</span></td>
@@ -1160,6 +1184,7 @@ function serializeState(){
     tenure:[...document.querySelectorAll('.tenure-row')].map(r=>({years:r.querySelector('.te-years').value,rate:r.querySelector('.te-rate').value})),
     allowances:[...document.querySelectorAll('.allow-row')].map(r=>({name:r.querySelector('.a-name').value,amount:r.querySelector('.a-amt').value,minInc:r.querySelector('.a-min')?r.querySelector('.a-min').checked:true})),
     deductions:[...document.querySelectorAll('.deduct-row')].map(r=>({name:r.querySelector('.d-name').value,amount:r.querySelector('.d-amt').value})),
+    saleCats:[...document.querySelectorAll('.salecat-row')].map(r=>({name:r.querySelector('.sc-name').value,rate:r.querySelector('.sc-rate').value})),
     staff:staff};
 }
 function saveState(){ try{ localStorage.setItem('salonPayrollV1', JSON.stringify(serializeState())); const el=$('saveMark'); if(el) el.textContent='この端末に保存済み（毎月は数字だけ変えればOK）'; }catch(e){} }
@@ -1171,6 +1196,7 @@ function restoreState(o){
   $('tenureRows').innerHTML=''; (o.tenure||[]).forEach(t=>addTenure({years:t.years,rate:t.rate}));
   $('allowRows').innerHTML=''; (o.allowances||[]).forEach(a=>addAllow({name:a.name,amount:a.amount,minInc:a.minInc}));
   $('deductRows').innerHTML=''; (o.deductions||[]).forEach(d=>addDeduct({name:d.name,amount:d.amount}));
+  $('saleCatRows').innerHTML=''; (o.saleCats||[]).forEach(c=>addSaleCat({name:c.name,rate:c.rate}));
   $('techModel').onchange(); $('nomModel').onchange();
   applyPref();
   staff = Array.isArray(o.staff)? o.staff : staff;
