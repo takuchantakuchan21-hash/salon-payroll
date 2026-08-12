@@ -119,6 +119,11 @@
   .payslip .ph .who{font-size:19px}
   .payslip .doc-title{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--blue);margin-bottom:3px}
   .payslip .net{border-left:4px solid var(--gold)}
+  .payslip .calc-basis{background:var(--gold-soft);border:1px solid #ecdcae;border-radius:10px;padding:12px 14px;margin:14px 0 4px}
+  .payslip .calc-basis .cb-title{font-size:11.5px;font-weight:800;color:var(--navy);letter-spacing:.02em;margin-bottom:7px}
+  .payslip .calc-basis .cb-row{font-size:12.5px;color:var(--ink);padding:4px 0;display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed #e7dcb8}
+  .payslip .calc-basis .cb-row:last-child{border-bottom:none}
+  .payslip .calc-basis .cb-row b{color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums}
   .payslip .takebar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:14px 0 7px;background:var(--line)}
   .payslip .takebar .seg.net{background:var(--navy)}
   .payslip .takebar .seg.ded{background:#c3ccdb}
@@ -905,6 +910,12 @@ function renderPayslip(cfg,rows){
     const genkyu=num(s.genkyu)||0;
     const deductTotal=sh.total+tax+jumin+r.deductTotal+genkyu;
     const net=r.gross-deductTotal;
+    const bLines=[];
+    if(num(s.techIncl)>0) bLines.push([`技術売上 ${yen(s.techIncl)}（税抜 ${yen(r.techBase)}）× ${(r.rate*100).toFixed(1)}%`, r.techCommission]);
+    if(num(s.retailIncl)>0) bLines.push([`店販 ${yen(s.retailIncl)}（税抜 ${yen(r.retailBase)}）× ${(cfg.retailRate*100).toFixed(1)}%`, r.retailCommission]);
+    (r.catDetail||[]).forEach(c=>{ const inc=(s.catSales&&s.catSales[c.name])||0; bLines.push([`${c.name} ${yen(inc)}（税抜 ${yen(toBase(cfg,inc))}）× ${(c.rate*100).toFixed(1)}%`, c.amount]); });
+    if(r.nomPay>0) bLines.push([cfg.nomModel==="perCount"?`指名 ${num(s.nomCount)}件 × ${yen(cfg.nomValue)}`:`指名売上 ${yen(s.nomIncl)}（税抜 ${yen(toBase(cfg,s.nomIncl))}）× ${cfg.nomValue}%`, r.nomPay]);
+    const basisHtml = bLines.length ? `<div class="calc-basis"><div class="cb-title">歩合の計算（スタッフに渡せる内訳）</div>${bLines.map(l=>`<div class="cb-row"><span>${l[0]}</span><b>${yen(l[1])}</b></div>`).join('')}</div>` : '';
     h+=`<div class="payslip">
       <div class="ph"><div><div class="doc-title">給与明細書</div><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div></div>
         <div class="meta">${cfg.salonName}<br>対象期間 ${ymPeriod(cfg.targetYm)}${cfg.payDate?`／支給日 ${cfg.payDate}`:""}<br>${cfg.prefecture}・標準報酬 ${yen(sh.healthStd)}</div></div>
@@ -930,6 +941,7 @@ function renderPayslip(cfg,rows){
       <tr style="border-top:2px solid var(--line)"><td><b>総支給（額面）</b></td><td class="gross">${yen(r.gross)}</td><td><b>控除合計</b></td><td><b>−${yen(deductTotal)}</b></td></tr>
       <tr><td class="muted" style="font-size:11px" colspan="2">うち課税支給 ${yen(r.gross-(r.commute||0))}／非課税(通勤) ${yen(r.commute||0)}</td><td></td><td></td></tr>
       </tbody></table></div>
+      ${basisHtml}
       <div class="takebar" title="総支給に占める手取りと控除">
         <div class="seg net" style="width:${(net/Math.max(1,r.gross)*100).toFixed(1)}%"></div>
         <div class="seg ded" style="width:${(deductTotal/Math.max(1,r.gross)*100).toFixed(1)}%"></div></div>
