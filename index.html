@@ -253,7 +253,11 @@
         <div id="flatBox"><label>技術歩合率（%）</label><input id="techRate" type="number" value="35" step="0.5"></div>
       </div>
       <div id="tieredBox" class="rowbox hidden">
-        <div class="subhead">売上ランク別（その月の技術売上"総額"がどの帯に入るかで率が決まる）</div>
+        <div class="subhead">売上ランク別（帯ごとに率を変える）</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;margin:2px 0 10px;font-size:12.5px">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600"><input type="radio" name="tierMode" value="whole" checked style="width:auto" onchange="if(window.__loaded)calcAll()"> 全体に一律（売上総額 × その帯の率）</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600"><input type="radio" name="tierMode" value="progressive" style="width:auto" onchange="if(window.__loaded)calcAll()"> 超過分ごと（累進・税金と同じ段階式）</label>
+        </div>
         <div id="tierRows"></div>
         <button class="btn ghost sm" onclick="addTier()">＋ 帯を追加</button>
       </div>
@@ -582,6 +586,7 @@ function getConfig(){
     guarantee:num($("guarantee").value), minWage:num($("minWage").value),
     prefecture:$("prefecture").value, shakaiApply:$("shakaiApply").value, targetYm:$("targetYm").value, payDate:$("payDate").value, shotei:num($("shotei").value)||160,
     techModel:$("techModel").value, techRate:num($("techRate").value)/100,
+    tierMode:(document.querySelector('input[name="tierMode"]:checked')||{}).value||'whole',
     tiers:[...document.querySelectorAll(".tier-row")].map(r=>({
       upTo:r.querySelector(".t-upto").value==="" ? Infinity : num(r.querySelector(".t-upto").value),
       rate:num(r.querySelector(".t-rate").value)/100 })).sort((a,b)=>a.upTo-b.upTo),
@@ -615,14 +620,24 @@ function techRateFor(cfg, techBase, tenureYears){
   }
   return 0;
 }
+/* 技術歩合の金額と実効率を返す。スタッフ個別上書き＞累進（超過分ごと）＞店の共通ルール（一律） */
+function techComm(cfg, s, techBase){
+  if(s.techRateOwn!==""&&s.techRateOwn!=null){ const r=num(s.techRateOwn)/100; return {commission:techBase*r, rate:r}; }
+  if(cfg.techModel==="tiered" && cfg.tierMode==="progressive" && cfg.tiers.length){
+    let prev=0, comm=0;
+    for(const t of cfg.tiers){ const hi=(t.upTo==null||t.upTo===Infinity)?Infinity:t.upTo; const portion=Math.max(0, Math.min(techBase, hi)-prev); comm+=portion*t.rate; prev=hi; if(techBase<=hi) break; }
+    return {commission:comm, rate:techBase>0?comm/techBase:0};
+  }
+  const r=techRateFor(cfg, techBase, s.tenureYears); return {commission:techBase*r, rate:r};
+}
 // staff: {name, techIncl, retailIncl, nomCount, nomIncl, tenureYears, workedHours, overtimeHours}
 function calcStaff(cfg, s){
   const base=(s.contract==="業務委託")?0:((s.base===""||s.base==null)?cfg.baseSalary:num(s.base)); // 基本給/手当はスタッフ個別（未設定は店の既定）。業務委託は基本給なし＝報酬のみ
   const techBase=toBase(cfg, s.techIncl);
   const retailBase=toBase(cfg, s.retailIncl);
   // 技術歩合率：スタッフ個別の上書きがあれば優先（歩合なし＝0を明示可）。無ければ店の共通ルール
-  const rate=(s.techRateOwn!==""&&s.techRateOwn!=null)?num(s.techRateOwn)/100:techRateFor(cfg, techBase, s.tenureYears);
-  const techCommission=techBase*rate;
+  const _tc=techComm(cfg, s, techBase);
+  const rate=_tc.rate, techCommission=_tc.commission;
   const retailCommission=retailBase*cfg.retailRate;
   // 追加の売上カテゴリ（ネイル等・サロンが定義）：各カテゴリ 売上(税抜)×率
   let catCommission=0; const catDetail=[];
@@ -1191,7 +1206,7 @@ function serializeState(){
   return {v:1,
     s:{salonName:g('salonName'),targetYm:g('targetYm'),taxRate:g('taxRate'),salesBasis:g('salesBasis'),
        baseSalary:g('baseSalary'),guarantee:g('guarantee'),prefecture:g('prefecture'),shakaiApply:g('shakaiApply'),payDate:g('payDate'),shotei:g('shotei'),
-       techModel:g('techModel'),techRate:g('techRate'),retailRate:g('retailRate'),nomModel:g('nomModel'),nomValue:g('nomValue')},
+       techModel:g('techModel'),techRate:g('techRate'),retailRate:g('retailRate'),nomModel:g('nomModel'),nomValue:g('nomValue'),tierMode:(document.querySelector('input[name="tierMode"]:checked')||{}).value||'whole'},
     tiers:[...document.querySelectorAll('.tier-row')].map(r=>({upTo:r.querySelector('.t-upto').value,rate:r.querySelector('.t-rate').value})),
     tenure:[...document.querySelectorAll('.tenure-row')].map(r=>({years:r.querySelector('.te-years').value,rate:r.querySelector('.te-rate').value})),
     allowances:[...document.querySelectorAll('.allow-row')].map(r=>({name:r.querySelector('.a-name').value,amount:r.querySelector('.a-amt').value,minInc:r.querySelector('.a-min')?r.querySelector('.a-min').checked:true})),
@@ -1204,6 +1219,7 @@ function restoreState(o){
   if(!o||o.v!==1) return;
   const set=(id,v)=>{ if($(id)!=null&&v!=null&&v!=="") $(id).value=v; };
   for(const k in o.s) set(k,o.s[k]);
+  if(o.s&&o.s.tierMode){ const tm=document.querySelector('input[name="tierMode"][value="'+o.s.tierMode+'"]'); if(tm) tm.checked=true; }
   $('tierRows').innerHTML=''; (o.tiers||[]).forEach(t=>addTier({upTo:t.upTo,rate:t.rate}));
   $('tenureRows').innerHTML=''; (o.tenure||[]).forEach(t=>addTenure({years:t.years,rate:t.rate}));
   $('allowRows').innerHTML=''; (o.allowances||[]).forEach(a=>addAllow({name:a.name,amount:a.amount,minInc:a.minInc}));
