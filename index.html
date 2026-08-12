@@ -281,8 +281,9 @@
       <h2><span class="n">3</span> 給与内訳（額面・社保/税 控除前）</h2>
       <div id="resultBody"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p></div>
       <div class="btnrow no-print" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+        <button class="btn ghost sm" onclick="exportTransferCSV()" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>振込データCSVを書き出す</button>
         <button class="btn ghost sm" onclick="exportJournalCSV()" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 10h16M10 4v16"/></svg>会計仕訳CSVを書き出す</button>
-        <div class="hint" style="margin-top:6px">給料手当／預り金（社保・源泉・住民税）／普通預金の振替仕訳を貸借一致で出力（賞与・業務委託の外注費も合算）。汎用CSVなので会計ソフトに取込できます。<b>会社負担の社会保険料（法定福利費）は別仕訳</b>です。freee/マネフォ専用形式が必要なら対応します。</div>
+        <div class="hint" style="margin-top:6px"><b>振込データ</b>＝各人の手取り（賞与込）を振込先口座つきで一覧出力（口座は各スタッフの詳細で入力）。<b>会計仕訳</b>＝給料手当／預り金（社保・源泉・住民税）／普通預金の振替仕訳を貸借一致で出力。どちらも汎用CSV。会社負担の社会保険料（法定福利費）は別仕訳。freee/マネフォ専用形式や銀行の全銀フォーマットが要るなら対応します。</div>
       </div>
     </div>
   </section>
@@ -707,12 +708,18 @@ function renderStaff(){
       html+=`<div><label>賞与の前月 社保控除後給与（円）</label><input type="number" value="${s.bonusPrev}" oninput="upd(${i},'bonusPrev',this.value)"><div class="hint">${s.taxCol==="甲"?`扶養${bd}人→賞与源泉率 <b>${bonusRateFor(bd,num(s.bonusPrev)||0)}%</b>（算出率表で自動）`:"乙欄は右の率を手入力"}</div></div>`;
       if(s.taxCol!=="甲") html+=`<div><label>賞与の源泉率（%・乙欄）</label><input type="number" step="0.001" value="${s.bonusRate}" oninput="upd(${i},'bonusRate',this.value)"></div>`;
     }
+    html+=`</div><div class="subhead" style="margin-top:14px">振込先口座（振込データ用・任意）</div><div class="grid">`;
+    html+=`<div><label>銀行名</label><input value="${s.bankName||''}" oninput="upd(${i},'bankName',this.value)" placeholder="例：三菱UFJ銀行"></div>`;
+    html+=`<div><label>支店名</label><input value="${s.branchName||''}" oninput="upd(${i},'branchName',this.value)" placeholder="例：渋谷支店"></div>`;
+    html+=`<div><label>預金種別</label><select onchange="upd(${i},'acctType',this.value)"><option value="普通"${(s.acctType||'普通')==="普通"?" selected":""}>普通</option><option value="当座"${s.acctType==="当座"?" selected":""}>当座</option></select></div>`;
+    html+=`<div><label>口座番号</label><input value="${s.acctNo||''}" oninput="upd(${i},'acctNo',this.value)" placeholder="7桁" inputmode="numeric"></div>`;
+    html+=`<div><label>口座名義（カナ）</label><input value="${s.acctKana||''}" oninput="upd(${i},'acctKana',this.value)" placeholder="ヤマダ タロウ"></div>`;
     html+=`</div></details>`;
     c.innerHTML=html; wrap.appendChild(c);
   });
 }
 function upd(i,k,v){
-  if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref") staff[i][k]=v;
+  if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref"||k==="bankName"||k==="branchName"||k==="acctType"||k==="acctNo"||k==="acctKana") staff[i][k]=v;
   else if(k==="age40"||k==="spouse"||k==="shakai"||k==="koyoIns"||k==="sanpq") staff[i][k]=!!v;
   else staff[i][k]=num(v);
   if(k==="birth") renderStaff(); // 年齢バッジ・介護手動チェックの表示更新
@@ -1185,6 +1192,23 @@ function exportJournalCSV(){
   rows.push(["","（借方合計）",drSum,"（貸方合計）",crSum, drSum===crSum?"貸借一致":"不一致・要確認"]);
   downloadFile(`給与仕訳_${cfg.targetYm||"data"}.csv`, rows.map(r=>r.map(csvEsc).join(",")).join("\r\n"));
   if(drSum!==crSum) alert("貸借が一致しません。入力をご確認ください（差額 "+yen(Math.abs(drSum-crSum))+"）。");
+}
+/* ---------- 振込データCSV（各人の手取り＋賞与を振込先口座つきで一覧化） ---------- */
+function exportTransferCSV(){
+  const cfg=getConfig();
+  const rows=[["氏名","振込額","銀行名","支店名","預金種別","口座番号","口座名義カナ","支給日"]];
+  let total=0, missing=0, count=0;
+  staff.forEach(s=>{
+    const r=calcStaff(cfg,s); const n=payslipNums(cfg,s,r);
+    const amt=n.net + (n.bonus?n.bonus.net:0);
+    if(amt<=0) return;
+    total+=amt; count++;
+    if(!(s.acctNo && s.bankName)) missing++;
+    rows.push([s.name||"", amt, s.bankName||"", s.branchName||"", s.acctType||"普通", s.acctNo||"", s.acctKana||"", cfg.payDate||""]);
+  });
+  rows.push([`（合計 ${count}名）`, total, "","","","","",""]);
+  downloadFile(`振込データ_${cfg.targetYm||"data"}.csv`, rows.map(r=>r.map(csvEsc).join(",")).join("\r\n"));
+  if(missing>0) alert(missing+"名の口座情報（銀行名・口座番号）が未入力です。金額は出力しましたが、振込前に「②毎月の入力→各スタッフの詳細→振込先口座」で補完してください。");
 }
 /* バックアップ：JSONで書き出し／読み込み（端末が変わっても引き継げる・複数月保管に） */
 function exportState(){
