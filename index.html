@@ -766,7 +766,7 @@ function renderStaff(){
     html+=`<div><label>標準報酬月額（社会保険の計算）</label>
       <label style="display:flex;align-items:center;gap:6px;font-weight:600;margin:2px 0 6px;color:var(--ink)"><input type="checkbox" style="width:auto" ${s.stdAuto!==false?"checked":""} onchange="upd(${i},'stdAuto',this.checked);renderStaff()"> 給与額から自動で推定（おすすめ）</label>
       ${s.stdAuto!==false
-        ? `<div class="rowbox" style="margin-top:0;padding:9px 12px;font-size:12.5px">自動推定：<b>${yen(estStd)}</b><div class="hint" style="margin-top:2px">正確な額は年金機構の通知に記載。分からなければこのままでOK</div></div>`
+        ? `<div class="rowbox" style="margin-top:0;padding:9px 12px;font-size:12.5px">自動推定：<b>${yen(estStd)}</b><div class="hint" style="margin-top:2px">給与額からの概算です（歩合で売上が変わると額も動きます）。社保は本来"年次で固定"なので、正確には年金機構の通知額を設定してください。分からなければこのままでOK。</div></div>`
         : `<select onchange="upd(${i},'stdReward',this.value)">${stdOpts}</select><div class="hint">年金機構の通知額を選択</div>`}
     </div>`;
     const fl=ageFlagsFor(s.birth, getConfig().targetYm);
@@ -980,12 +980,12 @@ function renderPayslip(cfg,rows){
       <tr><td>指名</td><td>${yen(r.nomPay)}</td><td>雇用保険料</td><td>${yen(sh.koyo)}</td></tr>
       <tr><td>保証補填</td><td>${r.guaranteeTopUp>0?yen(r.guaranteeTopUp):"—"}</td>
         <td>所得税（源泉）<span class="muted">${autoTax!=null?"自動":"手入力"}</span></td>
-        <td>${autoTax!=null? yen(autoTax) : `<input type="number" value="${s.jutec}" style="width:100px;padding:4px" onchange="staff[${i}].jutec=num(this.value);calcAll()">`}</td></tr>
+        <td>${autoTax!=null? yen(autoTax) : (payslipMode==='staff'? yen(tax) : `<input type="number" value="${s.jutec}" style="width:100px;padding:4px" onchange="staff[${i}].jutec=num(this.value);calcAll()">`)}</td></tr>
       <tr><td>${r.fixedOT>0?'固定残業代<span class="muted">みなし</span>':'残業割増<span class="muted">時間外</span>'}</td><td>${(r.otToGross||0)>0?yen(r.otToGross):"—"}</td>
         <td></td><td></td></tr>
       <tr><td>手当</td><td>${yen(r.allowTotal)}</td>
         <td>住民税<span class="muted">通知額</span></td>
-        <td><input type="number" value="${s.jumin}" style="width:100px;padding:4px" onchange="staff[${i}].jumin=num(this.value);calcAll()"></td></tr>
+        <td>${payslipMode==='staff'? yen(jumin) : `<input type="number" value="${s.jumin}" style="width:100px;padding:4px" onchange="staff[${i}].jumin=num(this.value);calcAll()">`}</td></tr>
       <tr><td>通勤手当<span class="muted">非課税</span></td><td>${r.commute>0?yen(r.commute):"—"}</td><td>${r.deductTotal>0?"天引き（材料費等）":"—"}</td><td>${r.deductTotal>0?"−"+yen(r.deductTotal):"—"}</td></tr>
       ${genkyu>0?`<tr><td></td><td></td><td>減給の制裁</td><td>−${yen(genkyu)}</td></tr>`:""}
       ${s.shakai===false?`<tr><td colspan="4"><span class="flag warn">この月は社保徴収なし（資格喪失月）に設定中</span></td></tr>`:""}
