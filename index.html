@@ -286,7 +286,7 @@
       <div class="subhead" style="margin-top:16px">天引き（材料費・研修費など）</div>
       <div id="deductRows"></div>
       <button class="btn ghost sm" onclick="addDeduct()">＋ 天引きを追加</button>
-      <div class="hint" style="margin-top:8px">天引きは労使協定がないと違法になり得ます（労基24条）。ここに入れた項目は結果画面で「社労士確認」の注意が付きます。</div>
+      <div class="hint" style="margin-top:8px">天引きには本人の同意（労使協定）が必要です。ここに入れた項目は結果画面で注意が表示されます。</div>
     </div>
     <div class="btnrow">
       <button class="btn" onclick="switchTab('input')">毎月の入力へ進む</button>
@@ -337,7 +337,7 @@
   <section id="chobo" class="tabpage hidden">
     <div class="card">
       <h2><span class="n">5</span> 賃金台帳</h2>
-      <p class="cardsub">労働基準法108条・労基則54条の法定帳簿。氏名・性別・賃金計算期間・労働日数/時間・時間外/深夜/休日の各時間・賃金の種類別額・控除額を記載します。</p>
+      <p class="cardsub">法律で保存が必要な帳簿です。氏名・勤務・賃金・控除をまとめて記録します。そのまま印刷して保管できます。</p>
       <div class="btnrow no-print" style="margin-top:0"><button class="btn navy sm" onclick="window.print()" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M8 15h8v6H8z"/></svg>賃金台帳を印刷 / PDF</button></div>
       <div id="choboBody" style="margin-top:14px"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p></div>
     </div>
@@ -346,8 +346,8 @@
   <!-- ============ ⑥ TEST ============ -->
   <section id="test" class="tabpage hidden">
     <div class="card">
-      <h2><span class="n">4</span> 自己検証（手計算との1円照合）</h2>
-      <p class="muted" style="font-size:12.5px;margin-top:0">エンジンの計算が、あらかじめ手で出した期待値と1円単位で一致するかを機械照合します。「宣言の前に機械照合」ルールの実装です。</p>
+      <h2><span class="n">4</span> 自己検証（公式データとの1円照合）</h2>
+      <p class="muted" style="font-size:12.5px;margin-top:0">計算結果が公式の数字と1円まで一致するかを、自動でチェックします。</p>
       <div id="testBody"></div>
       <button class="btn" onclick="runTests()">再検証を実行</button>
       <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
@@ -545,7 +545,7 @@ function addAllow(v={name:"",amount:"",minInc:true,otInc:true}){
   d.innerHTML=`<div><label>手当名</label><input class="a-name" value="${v.name}"></div>
     <div><label>金額（円/月）</label><input class="a-amt" type="number" value="${v.amount}"></div>
     <div style="align-self:end"><label style="display:inline">最賃に算入</label> <input class="a-min" type="checkbox" style="width:auto" ${v.minInc!==false?"checked":""}><div class="hint">職務/技術/役職＝算入・精皆勤/家族＝外す</div></div>
-    <div style="align-self:end"><label style="display:inline">割増に算入</label> <input class="a-ot" type="checkbox" style="width:auto" ${v.otInc!==false?"checked":""}><div class="hint">労基則21条：家族/住宅(一律以外)/通勤/別居/子女教育＝外す</div></div>
+    <div style="align-self:end"><label style="display:inline">割増に算入</label> <input class="a-ot" type="checkbox" style="width:auto" ${v.otInc!==false?"checked":""}><div class="hint">家族・住宅・通勤手当などは外す</div></div>
     <div style="align-self:end"><button class="del" onclick="this.closest('.allow-row').remove()">× 削除</button></div>`;
   $("allowRows").appendChild(d);
 }
@@ -679,15 +679,15 @@ function calcStaff(cfg, s){
   if(s.contract!=="業務委託" && s.workedHours>0){
     const hourly=fixedForMin/shotei + commTotal/s.workedHours;
     const where=s.workPref?`就業地${s.workPref} `:"";
-    if(hourly<staffMin) flags.push({lv:"bad",t:`最賃割れの疑い：時間額 ${Math.round(hourly)}円/h（固定給÷所定${shotei}＋歩合÷総労働${s.workedHours}h）< ${where}最低賃金 ${staffMin}円/h。要社労士確認`});
-    else flags.push({lv:"ok",t:`最賃OK（時間額 ${Math.round(hourly)}円/h ≥ ${where}${staffMin}円）`});
+    if(hourly<staffMin) flags.push({lv:"bad",t:`最低賃金を下回る可能性：時間額 ${Math.round(hourly)}円 < ${where}最低賃金 ${staffMin}円。ご確認ください`});
+    else flags.push({lv:"ok",t:`最低賃金OK（時間額 ${Math.round(hourly)}円 ≥ ${where}${staffMin}円）`});
   }
   if(s.contract!=="業務委託" && fixedOT>0){
     const extra=(otShortfall>0?`時間外差額 ${yen(otShortfall)}`:"時間外は充当")+(otSeparate>0?`＋深夜/法定休日 ${yen(otSeparate)}（別建て全額）`:"");
-    flags.push({lv:otShortfall>0||otSeparate>0?"bad":"ok",t:`固定残業代 ${yen(fixedOT)}：${extra} を自動加算。実割増合計 ${yen(overtimePay)}。深夜・法定休日はみなしで相殺不可（37条4項/35条）・明確区分は社労士確認`});
-  } else if(s.contract!=="業務委託" && overtimePay>0) flags.push({lv:"warn",t:`残業割増 ${yen(overtimePay)}（固定 ${yen(otFixed)}＋歩合 ${yen(otComm)}／時間外1.25・深夜+0.25・法定休日1.35・60h超+0.25）。端数の社内規程は社労士確認`});
-  if(s.contract!=="業務委託" && deductTotal>0) flags.push({lv:"warn",t:`天引き ${yen(deductTotal)} は労使協定（労基24条）が前提。社労士確認`});
-  if(s.contract!=="業務委託" && base===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保障給なし：労基27条の出来高保障給（労働時間に応じた一定額・平均賃金6割が目安）を要検討・社労士確認`});
+    flags.push({lv:otShortfall>0||otSeparate>0?"bad":"ok",t:`固定残業代 ${yen(fixedOT)}：${extra} を自動加算（実際の割増 ${yen(overtimePay)}）。深夜・法定休日は別途加算されます`});
+  } else if(s.contract!=="業務委託" && overtimePay>0) flags.push({lv:"warn",t:`残業割増 ${yen(overtimePay)}（時間外1.25倍・深夜+0.25・法定休日1.35倍・月60h超+0.25 を自動計算）`});
+  if(s.contract!=="業務委託" && deductTotal>0) flags.push({lv:"warn",t:`天引き ${yen(deductTotal)} は本人の同意（労使協定）が前提です`});
+  if(s.contract!=="業務委託" && base===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保証給なし：最低保障の設定をご検討ください`});
 
   return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, catCommission, catDetail, nomPay,
     allowTotal:(s.contract==="業務委託"?0:allowTotal), commute:(s.contract==="業務委託"?0:commute), guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
@@ -732,7 +732,7 @@ function renderStaff(){
     }
     const stdOpts=STD_GRADES.map(([std,low],gi)=>{const hi=(gi<STD_GRADES.length-1?STD_GRADES[gi+1][1]:null);const range=hi?`${(low||0).toLocaleString()}〜${hi.toLocaleString()}`:`${low.toLocaleString()}〜`;return `<option value="${std}"${s.stdReward===std?" selected":""}>${std.toLocaleString()}円（報酬月額 ${range}）</option>`;}).join("");
     if(gyomu){
-      html+=`</div><div class="rowbox" style="margin-top:2px;font-size:12px;color:var(--sub)">業務委託は<b>報酬（売上×歩合−材料費/場所代）</b>のみ計算します。社会保険・源泉徴収（美容業の委託は原則対象外）・最低賃金は適用しません。<br><span class="flag warn" style="margin-top:6px">偽装請負に注意：実態が雇用なら業務委託にできません。消費税/インボイスの扱いと合わせて社労士・税理士に確認を。</span></div>`;
+      html+=`</div><div class="rowbox" style="margin-top:2px;font-size:12px;color:var(--sub)">業務委託は<b>報酬（売上×歩合−材料費・場所代）</b>のみ計算します（社会保険・源泉・最低賃金は対象外）。<br><span class="flag warn" style="margin-top:6px">実態が雇用の場合は業務委託にできません。契約内容をご確認ください。</span></div>`;
       c.innerHTML=html; wrap.appendChild(c); return;
     }
     html+=`</div><details class="adv"><summary>社保・税・台帳・個別設定（初回に設定・毎月はそのままでOK）</summary><div class="grid">`;
@@ -742,7 +742,7 @@ function renderStaff(){
     html+=`<div><label>技術歩合率（個別・%）</label><input value="${s.techRateOwn||''}" oninput="upd(${i},'techRateOwn',this.value)" placeholder="空欄=店ルール"><div class="hint">この人だけ率を変える。0＝歩合なし（社長等）</div></div>`;
     html+=`<div><label>性別（賃金台帳用）</label><select onchange="upd(${i},'gender',this.value)"><option value=""${!s.gender?" selected":""}>—</option><option value="男"${s.gender==="男"?" selected":""}>男</option><option value="女"${s.gender==="女"?" selected":""}>女</option><option value="その他"${s.gender==="その他"?" selected":""}>その他</option></select></div>`;
     html+=`<div><label>就業地（複数店舗の最賃用）</label><select onchange="upd(${i},'workPref',this.value)"><option value=""${!s.workPref?" selected":""}>サロンと同じ</option>${Object.keys(MINWAGE).map(p=>`<option value="${p}"${s.workPref===p?" selected":""}>${p}（${MINWAGE[p][0]}円）</option>`).join("")}</select><div class="hint">別店舗で就業する人だけ設定（最賃はその就業地基準）</div></div>`;
-    html+=`<div><label>標準報酬月額（社保・年次固定）</label><select onchange="upd(${i},'stdReward',this.value)">${stdOpts}</select><div class="hint">年金機構「決定通知」の額を選択。9月定時決定・随時改定で更新</div></div>`;
+    html+=`<div><label>標準報酬月額（社保・年次固定）</label><select onchange="upd(${i},'stdReward',this.value)">${stdOpts}</select><div class="hint">年金機構の通知額を選択</div></div>`;
     const fl=ageFlagsFor(s.birth, getConfig().targetYm);
     const ageBadge=s.birth?`<span class="muted" style="font-size:11px">介護${fl.kaigo?"○":"×"}／厚年${fl.kosei?"○":"×(70歳~喪失)"}／健保${fl.kenpo?"○":"×(75歳~喪失)"}</span>`:`<span class="muted" style="font-size:11px">未入力→介護は右のチェックで手動</span>`;
     html+=`<div><label>生年月日（年齢境界の自動判定）</label><input type="date" value="${s.birth}" onchange="upd(${i},'birth',this.value)"><div class="hint">${ageBadge}</div></div>`;
@@ -751,18 +751,18 @@ function renderStaff(){
     html+=`<div style="align-self:end"><label style="display:inline">産休/育休（社保免除）</label> <input type="checkbox" style="width:auto" ${s.sanpq?"checked":""} onchange="upd(${i},'sanpq',this.checked)"></div>`;
     const chg=socialChargedThisMonth(s, getConfig().targetYm);
     html+=`<div><label>入社日（あれば）</label><input type="date" value="${s.hireDate}" onchange="upd(${i},'hireDate',this.value)"><div class="hint">入社月は固定給の日割り・社保は入社月から満額</div></div>`;
-    html+=`<div><label>退職日（あれば）</label><input type="date" value="${s.retireDate}" onchange="upd(${i},'retireDate',this.value)"><div class="hint">${s.retireDate?`喪失日=翌日→当月社保は<b>${chg?"徴収する(末日退職等)":"徴収しない(月中退職)"}</b>`:"入力すると末日/月中を自動判定"}</div></div>`;
-    if(!s.retireDate) html+=`<div style="align-self:end"><label style="display:inline">今月 社保を徴収</label> <input type="checkbox" style="width:auto" ${s.shakai!==false?"checked":""} onchange="upd(${i},'shakai',this.checked)"><div class="hint">健保/介護/厚年のみ停止（雇用保険は継続）。退職日を入れれば自動判定</div></div>`;
-    html+=`<div><label>税額区分（扶養控除等申告書）</label><select onchange="upd(${i},'taxCol',this.value)"><option value="甲"${s.taxCol==="甲"?" selected":""}>提出あり（メインの勤務先／甲欄）</option><option value="乙"${s.taxCol==="乙"?" selected":""}>提出なし（掛け持ち等／乙欄）</option><option value="丙"${s.taxCol==="丙"?" selected":""}>日雇・2ヶ月以内の短期（丙欄）</option></select><div class="hint">甲以外（乙・丙）は所得税を手入力（日額表・丙欄は日雇賃金）</div></div>`;
+    html+=`<div><label>退職日（あれば）</label><input type="date" value="${s.retireDate}" onchange="upd(${i},'retireDate',this.value)"><div class="hint">${s.retireDate?`当月の社保は<b>${chg?"徴収する":"徴収しない"}</b>（自動判定）`:"入れると当月社保の有無を自動判定"}</div></div>`;
+    if(!s.retireDate) html+=`<div style="align-self:end"><label style="display:inline">今月 社保を徴収</label> <input type="checkbox" style="width:auto" ${s.shakai!==false?"checked":""} onchange="upd(${i},'shakai',this.checked)"><div class="hint">健保・厚年のみ停止（雇用保険は継続）</div></div>`;
+    html+=`<div><label>税額区分（扶養控除等申告書）</label><select onchange="upd(${i},'taxCol',this.value)"><option value="甲"${s.taxCol==="甲"?" selected":""}>提出あり（メインの勤務先）</option><option value="乙"${s.taxCol==="乙"?" selected":""}>提出なし（掛け持ち等）</option><option value="丙"${s.taxCol==="丙"?" selected":""}>日雇・2ヶ月以内の短期</option></select><div class="hint">「提出なし」「日雇」は所得税を手入力</div></div>`;
     html+=`<div><label>源泉控除対象 親族の数<span class="muted">(特定親族19-23歳含む)</span></label><input type="number" value="${s.deps}" oninput="upd(${i},'deps',this.value)"><div class="hint">16歳未満は含めない</div></div>`;
-    html+=`<div><label>人的控除の加算（該当数）</label><input type="number" value="${s.taxAdd}" oninput="upd(${i},'taxAdd',this.value)"><div class="hint">本人が障害者/寡婦/ひとり親/勤労学生、扶養に障害者＝各＋1（源泉の扶養数に加算）</div></div>`;
+    html+=`<div><label>人的控除の加算（該当数）</label><input type="number" value="${s.taxAdd}" oninput="upd(${i},'taxAdd',this.value)"><div class="hint">本人が障害者・寡婦・ひとり親・勤労学生／扶養に障害者がいれば 各＋1</div></div>`;
     html+=`<div style="align-self:end"><label style="display:inline">源泉控除対象 配偶者</label> <input type="checkbox" style="width:auto" ${s.spouse?"checked":""} onchange="upd(${i},'spouse',this.checked)"><div class="hint">本人の所得900万円以下かつ配偶者の所得95万円以下のときだけ該当</div></div>`;
-    html+=`<div><label>減給の制裁（円）</label><input type="number" value="${s.genkyu}" oninput="upd(${i},'genkyu',this.value)"><div class="hint">懲戒の減給のみ。労基91条の限度チェックあり（材料費等の実費は「天引き」へ）</div></div>`;
-    html+=`<div><label>賞与額（円・あれば）</label><input type="number" value="${s.bonus}" oninput="upd(${i},'bonus',this.value)"><div class="hint">社保・源泉とも自動。厚年1回150万・健保年573万上限(要確認)</div></div>`;
+    html+=`<div><label>減給の制裁（円）</label><input type="number" value="${s.genkyu}" oninput="upd(${i},'genkyu',this.value)"><div class="hint">懲戒の減給のみ（材料費などの実費は「天引き」へ）</div></div>`;
+    html+=`<div><label>賞与額（円・あれば）</label><input type="number" value="${s.bonus}" oninput="upd(${i},'bonus',this.value)"><div class="hint">社保・源泉とも自動計算</div></div>`;
     if(num(s.bonus)>0){
       const bd=(s.spouse?1:0)+(num(s.deps)||0)+(num(s.taxAdd)||0);
-      html+=`<div><label>賞与の前月 社保控除後給与（円）</label><input type="number" value="${s.bonusPrev}" oninput="upd(${i},'bonusPrev',this.value)"><div class="hint">${s.taxCol==="甲"?`扶養${bd}人→賞与源泉率 <b>${bonusRateFor(bd,num(s.bonusPrev)||0)}%</b>（算出率表で自動）`:"乙欄は右の率を手入力"}</div></div>`;
-      if(s.taxCol!=="甲") html+=`<div><label>賞与の源泉率（%・乙欄）</label><input type="number" step="0.001" value="${s.bonusRate}" oninput="upd(${i},'bonusRate',this.value)"></div>`;
+      html+=`<div><label>賞与の前月 社保控除後給与（円）</label><input type="number" value="${s.bonusPrev}" oninput="upd(${i},'bonusPrev',this.value)"><div class="hint">${s.taxCol==="甲"?`扶養${bd}人→賞与の源泉率 <b>${bonusRateFor(bd,num(s.bonusPrev)||0)}%</b>（自動）`:"右の率を手入力"}</div></div>`;
+      if(s.taxCol!=="甲") html+=`<div><label>賞与の源泉率（%）</label><input type="number" step="0.001" value="${s.bonusRate}" oninput="upd(${i},'bonusRate',this.value)"></div>`;
     }
     html+=`</div><div class="subhead" style="margin-top:14px">振込先口座（振込データ用・任意）</div><div class="grid">`;
     html+=`<div><label>銀行名</label><input value="${s.bankName||''}" oninput="upd(${i},'bankName',this.value)" placeholder="例：三菱UFJ銀行"></div>`;
@@ -828,7 +828,7 @@ function calcAll(){
   h+=`<tr style="border-top:2px solid var(--navy);background:var(--bg)">
     <td style="font-weight:800">合計 ${rows.length}名</td><td style="font-weight:800">${yen(T.base)}</td><td style="font-weight:800">${yen(T.tech)}</td><td style="font-weight:800">${yen(T.retail)}</td><td style="font-weight:800">${T.cat>0?yen(T.cat):"—"}</td><td style="font-weight:800">${yen(T.nom)}</td><td style="font-weight:800">${T.guar>0?yen(T.guar):"—"}</td><td style="font-weight:800">${yen(T.allow)}</td><td class="gross" style="font-weight:800">${yen(T.gross)}</td><td style="font-weight:800">${T.deduct>0?"−"+yen(T.deduct):"—"}</td><td style="font-weight:800">${yen(T.after)}</td></tr>`;
   h+=`</tbody></table></div>`;
-  h+=`<p class="hint" style="margin-top:12px">※「総支給（額面）」から社会保険料を引いた手取りは「④ 給与明細」で確認できます。残業割増（労基37条）・年末調整は本ツールでは扱いません（社労士／既存給与ソフト）。</p>`;
+  h+=`<p class="hint" style="margin-top:12px">※社会保険料を引いた手取りは「④ 給与明細」で確認できます。年末調整はこのツールでは扱いません。</p>`;
   $("resultBody").innerHTML=h;
   renderPayslip(cfg,rows);
   renderChobo(cfg,rows);
@@ -884,7 +884,7 @@ function renderPayslip(cfg,rows){
         <tr><td>材料費・場所代 等</td><td>${r.deductTotal>0?"−"+yen(r.deductTotal):"—"}</td></tr>
         </tbody></table></div>
         <div class="net"><span class="lb">お支払い（報酬）</span><span class="v">${yen(pay)}</span></div>
-        <span class="flag warn">業務委託＝社保・源泉・最賃は対象外。消費税/インボイスは契約・登録状況により別途（税理士確認）。実態が雇用なら業務委託にできません（偽装請負・要社労士確認）。</span>
+        <span class="flag warn">業務委託は社保・源泉・最低賃金の対象外です。実態が雇用の場合は業務委託にできません。</span>
         </div>`;
       return;
     }
@@ -919,7 +919,7 @@ function renderPayslip(cfg,rows){
       ${(r.catDetail||[]).map(c=>`<tr><td>${c.name}（${(c.rate*100).toFixed(1)}%）</td><td>${yen(c.amount)}</td><td></td><td></td></tr>`).join('')}
       <tr><td>指名</td><td>${yen(r.nomPay)}</td><td>雇用保険料</td><td>${yen(sh.koyo)}</td></tr>
       <tr><td>保証補填</td><td>${r.guaranteeTopUp>0?yen(r.guaranteeTopUp):"—"}</td>
-        <td>所得税（源泉）<span class="muted">${autoTax!=null?"甲欄・自動":"乙欄・入力"}</span></td>
+        <td>所得税（源泉）<span class="muted">${autoTax!=null?"自動":"手入力"}</span></td>
         <td>${autoTax!=null? yen(autoTax) : `<input type="number" value="${s.jutec}" style="width:100px;padding:4px" onchange="staff[${i}].jutec=num(this.value);calcAll()">`}</td></tr>
       <tr><td>${r.fixedOT>0?'固定残業代<span class="muted">みなし</span>':'残業割増<span class="muted">時間外</span>'}</td><td>${(r.otToGross||0)>0?yen(r.otToGross):"—"}</td>
         <td></td><td></td></tr>
@@ -946,30 +946,30 @@ function renderPayslip(cfg,rows){
       <tr><td>雇用保険料</td><td>−${yen(bo.koyo)}</td></tr>
       <tr><td>所得税（源泉 ${bo.rate}%）</td><td>−${yen(bo.tax)}</td></tr>
       <tr style="border-top:2px solid var(--line)"><td><b>賞与 差引支給額</b></td><td class="gross">${yen(bo.net)}</td></tr>
-      </tbody></table></div><div class="hint">社保・源泉とも自動（厚年150万/回・健保573万/年上限は要確認）。源泉率＝国税庁 令和8年 算出率表（前月給与＋扶養${(s.spouse?1:0)+(num(s.deps)||0)+(num(s.taxAdd)||0)}人）。</div></div>`;
+      </tbody></table></div><div class="hint">賞与の社保・源泉とも自動計算</div></div>`;
     r.flags.forEach(f=>h+=`<span class="flag ${f.lv}">${f.t}</span>`);
     if(net<0) h+=`<span class="flag bad">差引支給額がマイナス（社保・税＞支給）。中途入社の日割り等でも社保は日割りされない点に注意・要確認</span>`;
     if(genkyu>0){ const nichi=s.workDays>0?Math.round(r.gross/s.workDays):0; const kai=Math.floor(nichi/2); const sougaku=Math.floor(r.gross/10);
       if(genkyu>sougaku) h+=`<span class="flag bad">減給の制裁 ${yen(genkyu)} が総額限度（賃金総額の1/10＝${yen(sougaku)}）超（労基91条）。要見直し・社労士確認</span>`;
-      else h+=`<span class="flag warn">減給の制裁 ${yen(genkyu)}。労基91条＝1回≦平均賃金1日分の半額(概算${yen(kai)})・総額≦1/10(${yen(sougaku)})。平均賃金の厳密計算は社労士確認</span>`; }
+      else h+=`<span class="flag warn">減給 ${yen(genkyu)}：上限は1回あたり平均賃金1日分の半額（概算${yen(kai)}）、総額は月給の1/10（${yen(sougaku)}）まで</span>`; }
     if(commuteTaxable>0) h+=`<span class="flag warn">通勤手当のうち ${yen(commuteTaxable)} は非課税限度（${s.commuteMode==="マイカー"?`マイカー ${s.commuteKm}km＝${yen(cLimit)}`:"公共交通 15万"}）超で課税に算入しました（源泉に反映）。</span>`;
     if(s.birth){ const a2=ageFlagsFor(s.birth,cfg.targetYm);
       if(!a2.kosei) h+=`<span class="flag warn">70歳到達＝厚年 徴収なし</span>`;
       if(!a2.kenpo) h+=`<span class="flag warn">75歳到達＝健保 徴収なし（後期高齢者医療へ）</span>`; }
     if(s.sanpq) h+=`<span class="flag ok">産休/育休＝社保免除を適用中（雇用保険は継続）</span>`;
-    if(notApplied) h+=`<span class="flag warn">個人経営の理美容＝非適用業種のため健保・厚年・介護は控除なし（国保・国民年金は本人納付）。雇用保険は加入</span>`;
+    if(notApplied) h+=`<span class="flag warn">個人経営のため健保・厚年・介護は控除なし（国保・国民年金は本人納付／雇用保険は加入）</span>`;
     (function(){ const tp=(cfg.targetYm||"").split("-").map(Number); if(tp.length<2) return; const inM=s.hireDate&&s.hireDate.slice(0,7)===cfg.targetYm; const outM=s.retireDate&&s.retireDate.slice(0,7)===cfg.targetYm;
-      if(inM&&outM) h+=`<span class="flag warn">同月得喪（入社と退職が同月）：その月分の社保は徴収（厚年は同月内再取得なら後日還付の特則）。固定給の日割り要確認・社労士確認</span>`;
-      else if(inM) h+=`<span class="flag warn">入社月：固定給の日割り・欠勤控除を要確認（社保は入社月から満額）</span>`;
-      else if(outM) h+=`<span class="flag warn">退職月：固定給の日割りを要確認</span>`; })();
-    if(chargeSocial && sh.healthStd>0 && (r.gross>sh.healthStd*2 || r.gross<sh.healthStd*0.5)) h+=`<span class="flag warn">標準報酬 ${yen(sh.healthStd)} と当月支給 ${yen(r.gross)} が乖離。歩合の一時変動でなく継続するなら随時改定/算定基礎の確認を（健保43・厚年23）</span>`;
+      if(inM&&outM) h+=`<span class="flag warn">入社と退職が同月：その月の社保は徴収。固定給の日割りをご確認ください</span>`;
+      else if(inM) h+=`<span class="flag warn">入社月：固定給の日割りをご確認ください（社保は入社月から満額）</span>`;
+      else if(outM) h+=`<span class="flag warn">退職月：固定給の日割りをご確認ください</span>`; })();
+    if(chargeSocial && sh.healthStd>0 && (r.gross>sh.healthStd*2 || r.gross<sh.healthStd*0.5)) h+=`<span class="flag warn">標準報酬 ${yen(sh.healthStd)} と当月支給 ${yen(r.gross)} に差があります。続くようなら標準報酬の見直しをご確認ください</span>`;
     h+=`<details class="adv" style="margin-top:8px"><summary>控除の計算根拠（額表・告示どおりか確認できます）</summary><div class="scroll"><table><tbody>
       <tr><td>健康保険料</td><td class="muted">標準報酬 ${yen(sh.healthStd)} × ${HEALTH_R8[cfg.prefecture]}% ÷2</td><td>${yen(sh.health)}</td></tr>
       ${sh.kaigo>0?`<tr><td>介護保険料</td><td class="muted">標準報酬 ${yen(sh.healthStd)} × ${SHAKAI_META.kaigo}% ÷2</td><td>${yen(sh.kaigo)}</td></tr>`:''}
       <tr><td>厚生年金保険料</td><td class="muted">標準報酬 ${yen(sh.pensionStd)} × ${SHAKAI_META.pension}% ÷2</td><td>${yen(sh.pension)}</td></tr>
       <tr><td>雇用保険料</td><td class="muted">賃金総額 ${yen(r.gross)} × ${SHAKAI_META.koyo_emp}/1000</td><td>${yen(sh.koyo)}</td></tr>
-      ${autoTax!=null?`<tr><td>所得税（源泉）</td><td class="muted">甲欄 電算機特例・課税支給 ${yen(A)}・扶養 ${s.deps}人${s.spouse?'＋配偶者':''}</td><td>${yen(tax)}</td></tr>`:''}
-      </tbody></table></div><div class="hint">社保＝協会けんぽ${cfg.prefecture} 令和8年度／端数は50銭以下切捨。源泉＝国税庁 令和8年分 甲欄。</div></details>`;
+      ${autoTax!=null?`<tr><td>所得税（源泉）</td><td class="muted">自動計算・課税対象 ${yen(A)}・扶養 ${s.deps}人${s.spouse?'＋配偶者':''}</td><td>${yen(tax)}</td></tr>`:''}
+      </tbody></table></div></details>`;
     if(pocMode){
       s.act=s.act||{};
       const rows=[["gross","総支給（額面）",r.gross],["health","健康保険料",sh.health],["kaigo","介護保険料",sh.kaigo],
@@ -988,7 +988,7 @@ function renderPayslip(cfg,rows){
     }
     h+=`</div>`;
   });
-  h+=`<div class="disc" style="margin-top:4px">社会保険料＝<b>${SHAKAI_META.fiscal}</b>（協会けんぽ都道府県別／介護 ${SHAKAI_META.kaigo}%／厚年 ${SHAKAI_META.pension}%／雇用 労働者 ${SHAKAI_META.koyo_emp}/1000・額表と1円照合済）。所得税＝<b>${TAX_META.fiscal}・甲欄</b>（${TAX_META.src}・告示の計算例と1円照合済／乙欄は手入力）。<b>料率・税額表は毎年改定→要更新。</b>住民税は特別徴収通知額を入力。残業割増・年末調整・<b>賞与（別ロジック）</b>は対象外（社労士／既存給与ソフト）。年齢境界(40/65/70/75歳)は生年月日＋対象月から自動判定。</div>`;
+  h+=`<div class="disc" style="margin-top:4px">社会保険料（${SHAKAI_META.fiscal}）・源泉所得税は公式データで自動計算しています。住民税は通知額を入力してください。年末調整はこのツールでは扱いません。</div>`;
   $("payslipBody").innerHTML=h;
 }
 
@@ -1031,7 +1031,7 @@ function runTests(){
   const s4={name:"D",techIncl:330000,retailIncl:0,nomCount:0,nomIncl:0,tenureYears:0,workedHours:160,overtimeHours:0};
   // 税抜=300,000×40%=120,000 / 最賃必要=1050×160=168,000 → 120,000<168,000 → 最賃割れ
   cases.push({label:"閑散月・完全歩合で最賃割れを検出",cfg:cfg4,s:s4,
-    expect:{techCommission:120000,gross:120000},expectFlag:"最賃割れ"});
+    expect:{techCommission:120000,gross:120000},expectFlag:"最低賃金を下回る"});
 
   // Case 5: 残業割増（固定給×1.25＋歩合×0.25）
   const cfg5={salonName:"T5",taxRate:0.10,salesBasis:"excl",baseSalary:200000,guarantee:0,minWage:1050,shotei:160,
