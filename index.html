@@ -205,17 +205,17 @@
       <h2><span class="n">1</span> 基本設定</h2>
       <div class="grid">
         <div><label>サロン名</label><input id="salonName" value="サンプルサロン"></div>
-        <div><label>給与計算 対象月</label><input id="targetYm" type="month" value="2026-08"><div class="hint">年齢境界(40/65/70/75歳)の自動判定に使用</div></div>
-        <div><label>支給日</label><input id="payDate" type="date"><div class="hint">明細に記載（源泉の年分・納期の基準）</div></div>
-        <div><label>消費税率</label><input id="taxRate" type="number" value="10" step="1"><div class="hint">%</div></div>
+        <div><label>給与計算 対象月</label><input id="targetYm" type="month" value="2026-08"><div class="hint">年齢境界の自動判定に使用</div></div>
+        <div><label>支給日</label><input id="payDate" type="date"></div>
+        <div><label>消費税率（%）</label><input id="taxRate" type="number" value="10" step="1"></div>
         <div>
           <label>歩合の対象売上</label>
           <select id="salesBasis"><option value="excl">税抜（税込÷1.1）</option><option value="incl">税込のまま</option></select>
-          <div class="hint">多くのサロンは税抜で歩合計算</div>
+          <div class="hint">多くは税抜で計算</div>
         </div>
         <div><label>固定基本給（円/月）</label><input id="baseSalary" type="number" value="180000"><div class="hint">完全歩合なら 0</div></div>
-        <div><label>保証給（最低保証・円/月）</label><input id="guarantee" type="number" value="0"><div class="hint">基本給＋歩合がこれ未満なら差額を補填。無しは 0</div></div>
-        <div><label>月平均所定労働時間</label><input id="shotei" type="number" value="160"><div class="hint">残業割増の単価計算に使用（例：(年365−休日)÷12×1日所定）</div></div>
+        <div><label>保証給（最低保証・円/月）</label><input id="guarantee" type="number" value="0"><div class="hint">無しは 0</div></div>
+        <div><label>月平均所定労働時間</label><input id="shotei" type="number" value="160"><div class="hint">残業単価の計算に使用</div></div>
         <div>
           <label>社会保険の適用</label>
           <select id="shakaiApply">
@@ -223,14 +223,14 @@
             <option value="個人任意">個人経営＋任意適用の認可あり（適用）</option>
             <option value="個人非適用">個人経営（理美容＝非適用業種／健保・厚年なし）</option>
           </select>
-          <div class="hint">理美容は非適用業種。個人経営は原則 国保・国民年金（雇用保険は業種不問で加入）</div>
+          <div class="hint">個人経営は原則 国保・国民年金</div>
         </div>
         <div>
           <label>都道府県（最低賃金の判定用）</label>
           <select id="prefecture"></select>
           <div class="hint" id="prefHint">—</div>
         </div>
-        <div><label>最低賃金（円/時）※上書き可</label><input id="minWage" type="number" value="1050"><div class="hint">通常は都道府県で自動セット。特定（産業別）最賃を使う場合のみ上書き</div></div>
+        <div><label>最低賃金（円/時）※上書き可</label><input id="minWage" type="number" value="1050"><div class="hint">通常は自動。特定最賃のみ上書き</div></div>
       </div>
       <div id="minwageBanner" class="disc" style="margin-top:6px;margin-bottom:0"></div>
     </div>
@@ -700,12 +700,12 @@ function renderStaff(){
     html+=`<div class="subhead group">勤怠</div>`;
     html+=`<div><label>勤務日数（日/月）</label><input type="number" value="${s.workDays}" oninput="upd(${i},'workDays',this.value)"></div>`;
     html+=`<div><label>労働時間（h/月）</label><input type="number" value="${s.workedHours}" oninput="upd(${i},'workedHours',this.value)"></div>`;
-    html+=`<div><label>うち時間外（h）</label><input type="number" value="${s.overtimeHours}" oninput="upd(${i},'overtimeHours',this.value)"><div class="hint">法定超の残業。月60h超は1.5倍を自動加算</div></div>`;
-    html+=`<div><label>うち深夜（22-5時・h）</label><input type="number" value="${s.nightHours}" oninput="upd(${i},'nightHours',this.value)"><div class="hint">+0.25加算</div></div>`;
-    html+=`<div><label>法定休日労働（h）</label><input type="number" value="${s.holidayHours}" oninput="upd(${i},'holidayHours',this.value)"><div class="hint">1.35倍</div></div>`;
-    html+=`<div><label>固定残業代（みなし・円）</label><input type="number" value="${s.fixedOT}" oninput="upd(${i},'fixedOT',this.value)"><div class="hint">あれば入力。実割増が超えたら差額を自動清算</div></div>`;
+    html+=`<div><label>うち時間外（h）</label><input type="number" value="${s.overtimeHours}" oninput="upd(${i},'overtimeHours',this.value)"></div>`;
+    html+=`<div><label>うち深夜（22-5時・h）</label><input type="number" value="${s.nightHours}" oninput="upd(${i},'nightHours',this.value)"></div>`;
+    html+=`<div><label>法定休日労働（h）</label><input type="number" value="${s.holidayHours}" oninput="upd(${i},'holidayHours',this.value)"></div>`;
+    html+=`<div><label>固定残業代（みなし・円）</label><input type="number" value="${s.fixedOT}" oninput="upd(${i},'fixedOT',this.value)"></div>`;
     html+=`<div class="subhead group">通勤</div>`;
-    html+=`<div><label>通勤手当（円/月）</label><input type="number" value="${s.commute}" oninput="upd(${i},'commute',this.value)"><div class="hint">非課税限度まで源泉から除外・超過は自動で課税。社保/雇用は算入</div></div>`;
+    html+=`<div><label>通勤手当（円/月）</label><input type="number" value="${s.commute}" oninput="upd(${i},'commute',this.value)"><div class="hint">非課税分は自動判定</div></div>`;
     html+=`<div><label>通勤手段</label><select onchange="upd(${i},'commuteMode',this.value);renderStaff()"><option value="公共"${s.commuteMode!=="マイカー"?" selected":""}>公共交通（限度15万）</option><option value="マイカー"${s.commuteMode==="マイカー"?" selected":""}>マイカー等（距離別）</option></select></div>`;
     if(s.commuteMode==="マイカー") html+=`<div><label>片道距離（km）</label><input type="number" value="${s.commuteKm}" oninput="upd(${i},'commuteKm',this.value)"><div class="hint">非課税限度 ${yen(commuteLimit("マイカー",s.commuteKm))}</div></div>`;
     }
