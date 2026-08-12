@@ -123,6 +123,13 @@
   .payslip .ph .who{font-size:19px}
   .payslip .doc-title{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--blue);margin-bottom:3px}
   .payslip .net{border-left:4px solid var(--gold)}
+  .payslip .takebar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:14px 0 7px;background:var(--line)}
+  .payslip .takebar .seg.net{background:var(--navy)}
+  .payslip .takebar .seg.ded{background:#c3ccdb}
+  .payslip .takebar-legend{display:flex;gap:18px;font-size:11.5px;color:var(--sub);flex-wrap:wrap;margin-bottom:2px}
+  .payslip .takebar-legend .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  .payslip .takebar-legend .dot.net{background:var(--navy)}
+  .payslip .takebar-legend .dot.ded{background:#c3ccdb}
   .payslip table th{font-size:12px;color:var(--navy);letter-spacing:.01em}
   .subhead.group{grid-column:1/-1;margin:8px 0 -2px;color:var(--blue);font-size:11.5px;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
   .subhead.group::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -893,6 +900,10 @@ function renderPayslip(cfg,rows){
       <tr style="border-top:2px solid var(--line)"><td><b>総支給（額面）</b></td><td class="gross">${yen(r.gross)}</td><td><b>控除合計</b></td><td><b>−${yen(deductTotal)}</b></td></tr>
       <tr><td class="muted" style="font-size:11px" colspan="2">うち課税支給 ${yen(r.gross-(r.commute||0))}／非課税(通勤) ${yen(r.commute||0)}</td><td></td><td></td></tr>
       </tbody></table></div>
+      <div class="takebar" title="総支給に占める手取りと控除">
+        <div class="seg net" style="width:${(net/Math.max(1,r.gross)*100).toFixed(1)}%"></div>
+        <div class="seg ded" style="width:${(deductTotal/Math.max(1,r.gross)*100).toFixed(1)}%"></div></div>
+      <div class="takebar-legend"><span><i class="dot net"></i>手取り ${yen(net)}（${Math.round(net/Math.max(1,r.gross)*100)}%）</span><span><i class="dot ded"></i>控除 ${yen(deductTotal)}</span></div>
       <div class="net"><span class="lb">差引支給額（手取り）</span><span class="v">${yen(net)}</span></div>`;
     const bo=calcBonus(cfg,s,af,chargeSocial);
     if(bo) h+=`<div class="rowbox" style="margin-top:10px"><div class="subhead">賞与明細（${cfg.targetYm||""}）</div><div class="scroll"><table><tbody>
