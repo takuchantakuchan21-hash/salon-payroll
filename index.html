@@ -718,10 +718,13 @@ function renderStaff(){
     html+=`<div class="subhead group">勤怠</div>`;
     html+=`<div><label>勤務日数（日/月）</label><input type="number" value="${s.workDays}" oninput="upd(${i},'workDays',this.value)"></div>`;
     html+=`<div><label>労働時間（h/月）</label><input type="number" value="${s.workedHours}" oninput="upd(${i},'workedHours',this.value)"></div>`;
+    const hasOT=(num(s.overtimeHours)||num(s.nightHours)||num(s.holidayHours)||num(s.fixedOT));
+    html+=`<details class="adv" style="grid-column:1/-1;margin-top:2px"${hasOT?" open":""}><summary>残業・深夜・休日（あれば入力）</summary><div class="grid" style="margin-top:8px">`;
     html+=`<div><label>うち時間外（h）</label><input type="number" value="${s.overtimeHours}" oninput="upd(${i},'overtimeHours',this.value)"></div>`;
     html+=`<div><label>うち深夜（22-5時・h）</label><input type="number" value="${s.nightHours}" oninput="upd(${i},'nightHours',this.value)"></div>`;
     html+=`<div><label>法定休日労働（h）</label><input type="number" value="${s.holidayHours}" oninput="upd(${i},'holidayHours',this.value)"></div>`;
     html+=`<div><label>固定残業代（みなし・円）</label><input type="number" value="${s.fixedOT}" oninput="upd(${i},'fixedOT',this.value)"></div>`;
+    html+=`</div></details>`;
     html+=`<div class="subhead group">通勤</div>`;
     html+=`<div><label>通勤手当（円/月）</label><input type="number" value="${s.commute}" oninput="upd(${i},'commute',this.value)"><div class="hint">非課税分は自動判定</div></div>`;
     html+=`<div><label>通勤手段</label><select onchange="upd(${i},'commuteMode',this.value);renderStaff()"><option value="公共"${s.commuteMode!=="マイカー"?" selected":""}>公共交通（限度15万）</option><option value="マイカー"${s.commuteMode==="マイカー"?" selected":""}>マイカー等（距離別）</option></select></div>`;
