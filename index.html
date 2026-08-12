@@ -7,32 +7,31 @@
 <title>airchair｜サロン給与 — 数字を入れるだけで給与明細まで</title>
 <style>
   :root{
-    --bg:#faf8f4; --bg-soft:#f3efe7; --card:#ffffff; --ink:#2a2c30; --sub:#867c6f; --line:#ece5da; --line-2:#e2dbce;
-    --navy:#182842; --navy2:#243858; --blue:#2f5fd0; --blue-soft:#eef1fb; --gold:#b8923c; --gold-soft:#f5ecd6;
-    --ok:#2f7d55; --ok-bg:#e9f4ed; --warn:#96690a; --warn-bg:#faf1db; --bad:#b0413a; --bad-bg:#f9ebe8;
-    --shadow:0 1px 2px rgba(60,50,30,.035),0 12px 28px rgba(60,50,30,.06);
-    --radius:14px;
-    --serif:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP","Times New Roman",serif;
+    --bg:#f4f6fa; --card:#ffffff; --ink:#1a2333; --sub:#66707f; --line:#e6eaf1;
+    --navy:#16233d; --navy2:#233657; --blue:#2f6bff; --blue-soft:#eef3ff; --gold:#c9a24b;
+    --ok:#0a7d4d; --ok-bg:#e8f7ef; --warn:#9a6b00; --warn-bg:#fff7e2; --bad:#b3261e; --bad-bg:#fdecea;
+    --shadow:0 1px 2px rgba(20,35,61,.04),0 8px 22px rgba(20,35,61,.05);
+    --radius:16px;
   }
   @media (prefers-color-scheme:dark){
-    :root{ --bg:#14151a; --bg-soft:#1c1e25; --card:#1c1e25; --ink:#e8e4db; --sub:#a49b8d; --line:#2b2d36; --line-2:#343642;
-      --navy:#dfe6f2; --navy2:#cdd6e6; --blue:#8fb0f0; --blue-soft:#1a2233; --gold:#d8b869; --gold-soft:#2a2415;
-      --ok:#6fd39f; --ok-bg:#12281d; --warn:#e6bf6a; --warn-bg:#2e2611; --bad:#ea9089; --bad-bg:#331917; }
+    :root{ --bg:#0e131b; --card:#161d28; --ink:#e9edf4; --sub:#9aa7b6; --line:#26303d;
+      --navy:#cdd8ea; --navy2:#dbe4f2; --blue:#6d98ff; --blue-soft:#18233b; --gold:#d8b869;
+      --ok:#5bd6a0; --ok-bg:#123026; --warn:#e6bf6a; --warn-bg:#33290f; --bad:#f0938c; --bad-bg:#3a1614; }
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-    line-height:1.72;letter-spacing:.004em;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    line-height:1.65;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1000px;margin:0 auto;padding:0 16px 96px}
   /* ---- header (clean・white・airy) ---- */
   .hero{padding:46px 2px 28px;border-bottom:1px solid var(--line);margin-bottom:26px}
   .hero .brand{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--sub);font-weight:800}
-  .hero h1{font-family:var(--serif);font-size:38px;line-height:1.34;margin:18px 0 14px;letter-spacing:.01em;font-weight:600;color:var(--navy);max-width:15em}
-  .hero .accent{width:54px;height:2px;background:var(--gold);border-radius:2px;margin:2px 0 15px}
+  .hero h1{font-size:34px;line-height:1.26;margin:16px 0 12px;letter-spacing:-.012em;font-weight:800;color:var(--navy);max-width:16em}
+  .hero .accent{width:46px;height:3px;background:var(--blue);border-radius:2px;margin:0 0 12px}
   .hero .lead{color:var(--sub);font-size:14px;margin:0;max-width:640px;line-height:1.8}
   .steps{display:flex;gap:28px;flex-wrap:wrap;margin-top:24px}
   .steps .s{flex:1;min-width:170px}
-  .steps .s .k{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.1em}
+  .steps .s .k{font-size:12px;font-weight:800;color:var(--blue);letter-spacing:.08em}
   .steps .s .t{font-size:14.5px;color:var(--navy);font-weight:800;margin-top:6px}
   .steps .s .d{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.55}
   /* ---- trust row (flat・単色線アイコン) ---- */
@@ -59,14 +58,14 @@
   /* ---- card ---- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:26px 26px;margin-bottom:18px}
-  .card h2{font-family:var(--serif);font-size:20px;margin:0 0 5px;display:flex;align-items:center;gap:11px;font-weight:600;letter-spacing:.01em;color:var(--navy)}
-  .card h2 .n{background:var(--gold-soft);color:var(--navy);border:1px solid var(--gold);border-radius:8px;width:27px;height:27px;
-    display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:-apple-system,sans-serif}
+  .card h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.01em}
+  .card h2 .n{background:var(--navy);color:#fff;border-radius:9px;width:26px;height:26px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
   .card .cardsub{color:var(--sub);font-size:12.5px;margin:0 0 14px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 16px}
   label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:700}
-  input,select{width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:9px;
-    background:var(--bg-soft);color:var(--ink);font-size:14px;font-family:inherit;transition:.12s}
+  input,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+    background:var(--bg);color:var(--ink);font-size:14px;font-family:inherit;transition:.12s}
   input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
   .hint{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.45}
   .rowbox{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:14px;margin-top:10px}
@@ -76,11 +75,10 @@
   th:first-child,td:first-child{text-align:left}
   th{color:var(--sub);font-weight:700;font-size:11.5px;background:var(--bg)}
   .scroll{overflow-x:auto}
-  .btn{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;
-    font-weight:700;cursor:pointer;font-family:inherit;transition:.16s;box-shadow:0 6px 16px rgba(24,40,66,.16)}
-  .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
-  .btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line-2);box-shadow:none;font-weight:700}
-  .btn.ghost:hover{border-color:var(--gold);color:var(--gold);filter:none}
+  .btn{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:14px;
+    font-weight:800;cursor:pointer;font-family:inherit;transition:.15s;box-shadow:0 4px 12px rgba(47,107,255,.25)}
+  .btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);box-shadow:none}
   .btn.navy{background:var(--navy);box-shadow:0 4px 12px rgba(22,35,61,.25)}
   .btn.sm{padding:7px 13px;font-size:12.5px}
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
@@ -126,7 +124,7 @@
   .payslip .doc-title{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--blue);margin-bottom:3px}
   .payslip .net{border-left:4px solid var(--gold)}
   .payslip table th{font-size:12px;color:var(--navy);letter-spacing:.01em}
-  .subhead.group{grid-column:1/-1;margin:10px 0 -2px;color:var(--gold);font-size:11px;letter-spacing:.12em;font-weight:800;display:flex;align-items:center;gap:10px}
+  .subhead.group{grid-column:1/-1;margin:8px 0 -2px;color:var(--blue);font-size:11.5px;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
   .subhead.group::after{content:"";flex:1;height:1px;background:var(--line)}
   @media (max-width:640px){
     .tabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:12px}
@@ -134,12 +132,6 @@
     .tab{flex:0 0 auto;white-space:nowrap}
     .card{padding:20px 18px}
     .hero h1{font-size:27px}
-  }
-  /* ダーク：濃紺サーフェスは暗い面＋白文字を維持（--navyが明色に反転するため末尾で上書き＝ソース順で勝たせる） */
-  @media (prefers-color-scheme:dark){
-    .btn,.btn.navy,.tab.active,.card h2 .n,.staff-card .top strong .av,.payslip .net{background:#243858;color:#fff}
-    .btn.ghost{background:transparent;color:var(--navy)}
-    .payslip .net .lb{color:#c7d0e2}
   }
   @media print{
     body{background:#fff}
