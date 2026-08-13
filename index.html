@@ -267,6 +267,15 @@
     <div class="card">
       <h2><span class="n">2</span> 技術売上の歩合ルール</h2>
       <p class="cardsub">ここは「率（歩合ルール）」だけ決めます。売上金額は毎月「② 毎月の入力」でスタッフごとに入れます。</p>
+      <div style="margin-bottom:14px">
+        <label>歩合の入れ方</label>
+        <select id="payMode" style="max-width:480px">
+          <option value="sales">売上から自動で計算する（技術売上×歩合率など）</option>
+          <option value="amount">歩合の金額を直接入力する（サロンで決めた歩合額を入れる）</option>
+        </select>
+        <div class="hint">「金額を直接入力」を選ぶと、② 毎月の入力は各スタッフ『歩合給（円）』の1欄だけになります（社保・税・明細は自動）。歩合をExcel等で先に出しているサロンはこちら。</div>
+      </div>
+      <div id="salesRuleBox">
       <div class="grid">
         <div>
           <label>歩合の決め方</label>
@@ -292,10 +301,13 @@
         <div id="tenureRows"></div>
         <button class="btn ghost sm" onclick="addTenure()">＋ 段階を追加</button>
       </div>
+      </div>
+      <div id="amountModeNote" class="hint hidden" style="margin-top:2px">歩合は「② 毎月の入力」でスタッフごとに<b>金額（円）</b>で入れます。技術歩合率・店販率・指名の率設定は使いません（手当・天引きはそのまま使えます）。</div>
     </div>
 
     <div class="card">
       <h2><span class="n">3</span> 店販・指名・手当・天引き</h2>
+      <div id="salesExtraBox">
       <div class="grid">
         <div><label>店販の還元率（%）</label><input id="retailRate" type="number" value="10" step="0.5"><div class="hint">店販売上（税抜）×この率</div></div>
         <div>
@@ -315,6 +327,7 @@
       <div id="saleCatRows"></div>
       <button class="btn ghost sm" onclick="addSaleCat();if(window.__loaded){renderStaff();saveState();}">＋ 歩合対象を追加</button>
       <div class="hint" style="margin-top:8px">技術・店販・指名のほかに歩合を出す売上があれば、名前と率で追加（例：ヘッドスパ、着付け。ネイルやまつ毛をやる店はそれもここに）。各スタッフの売上欄が「②毎月の入力」に増えます。</div>
+      </div>
 
       <div class="subhead" style="margin-top:16px">固定手当（役職手当・技術手当など）</div>
       <div id="allowRows"></div>
@@ -623,6 +636,15 @@ $("nomModel").onchange=function(){
   else if(v==="split"){ if(lab)lab.textContent="指名売上の歩合率（%）"; if(hint)hint.textContent="指名売上（税抜）× この率（フリーは上の技術歩合率）"; }
   renderStaff();
 };
+/* 歩合の入れ方：sales=売上×率で自動／amount=歩合の金額を直接入力（率設定を隠す） */
+$("payMode").onchange=function(){
+  const amount=this.value==="amount";
+  const sr=$("salesRuleBox"), se=$("salesExtraBox"), note=$("amountModeNote");
+  if(sr)sr.classList.toggle("hidden",amount);
+  if(se)se.classList.toggle("hidden",amount);
+  if(note)note.classList.toggle("hidden",!amount);
+  if(window.__loaded){ renderStaff(); calcAll(); saveState(); }
+};
 
 /* ---------- read config ---------- */
 function getConfig(){
@@ -631,6 +653,7 @@ function getConfig(){
     salesBasis:$("salesBasis").value, baseSalary:num($("baseSalary").value),
     guarantee:num($("guarantee").value), minWage:num($("minWage").value),
     prefecture:$("prefecture").value, shakaiApply:$("shakaiApply").value, targetYm:$("targetYm").value, payDate:$("payDate").value, shotei:num($("shotei").value)||160,
+    payMode:($("payMode")?$("payMode").value:"sales"),
     techModel:$("techModel").value, techRate:num($("techRate").value)/100,
     tierMode:(document.querySelector('input[name="tierMode"]:checked')||{}).value||'whole',
     tiers:[...document.querySelectorAll(".tier-row")].map(r=>({
@@ -682,23 +705,27 @@ function calcStaff(cfg, s){
   const techBase=toBase(cfg, s.techIncl);
   const retailBase=toBase(cfg, s.retailIncl);
   // 技術歩合率：スタッフ個別の上書きがあれば優先（歩合なし＝0を明示可）。無ければ店の共通ルール
-  const _tc=techComm(cfg, s, techBase);
-  let rate=_tc.rate, techCommission=_tc.commission;
-  // フリー/指名で率を分ける（split）：技術売上=フリー分・指名売上=別率で、上乗せでなく別々に率をかける（＝二重計上しない）
-  let freeComm=null, freeRate=null, nomBase=0, nomComm=0, nomRate=null;
-  if(cfg.nomModel==="split"){
-    freeComm=_tc.commission; freeRate=_tc.rate;
-    nomBase=toBase(cfg, s.nomIncl); nomRate=num(cfg.nomValue)/100; nomComm=nomBase*nomRate;
-    techCommission=freeComm+nomComm;
-    const denom=techBase+nomBase; rate=denom>0?techCommission/denom:0;
+  // 歩合の入れ方：'amount'=サロンが決めた歩合額を直接入力（率計算しない）／'sales'=売上×率で自動計算
+  let rate=0, techCommission=0, retailCommission=0, catCommission=0, nomPay=0, commAmount=0;
+  let catDetail=[]; let freeComm=null, freeRate=null, nomBase=0, nomComm=0, nomRate=null;
+  if(cfg.payMode==="amount"){
+    commAmount=num(s.commAmount)||0; techCommission=commAmount; rate=0;
+  } else {
+    const _tc=techComm(cfg, s, techBase);
+    rate=_tc.rate; techCommission=_tc.commission;
+    // フリー/指名で率を分ける（split）：技術売上=フリー分・指名売上=別率で、上乗せでなく別々に率をかける（＝二重計上しない）
+    if(cfg.nomModel==="split"){
+      freeComm=_tc.commission; freeRate=_tc.rate;
+      nomBase=toBase(cfg, s.nomIncl); nomRate=num(cfg.nomValue)/100; nomComm=nomBase*nomRate;
+      techCommission=freeComm+nomComm;
+      const denom=techBase+nomBase; rate=denom>0?techCommission/denom:0;
+    }
+    retailCommission=retailBase*cfg.retailRate;
+    // 追加の売上カテゴリ（サロンが定義）：各カテゴリ 売上(税抜)×率
+    (cfg.saleCats||[]).forEach(c=>{ const sales=(s.catSales&&s.catSales[c.name])||0; if(sales>0){ const amt=toBase(cfg, sales)*c.rate; catCommission+=amt; catDetail.push({name:c.name, rate:c.rate, amount:amt}); } });
+    if(cfg.nomModel==="perCount") nomPay=s.nomCount*cfg.nomValue;
+    else if(cfg.nomModel==="rate") nomPay=toBase(cfg, s.nomIncl)*(cfg.nomValue/100);
   }
-  const retailCommission=retailBase*cfg.retailRate;
-  // 追加の売上カテゴリ（サロンが定義）：各カテゴリ 売上(税抜)×率
-  let catCommission=0; const catDetail=[];
-  (cfg.saleCats||[]).forEach(c=>{ const sales=(s.catSales&&s.catSales[c.name])||0; if(sales>0){ const amt=toBase(cfg, sales)*c.rate; catCommission+=amt; catDetail.push({name:c.name, rate:c.rate, amount:amt}); } });
-  let nomPay=0;
-  if(cfg.nomModel==="perCount") nomPay=s.nomCount*cfg.nomValue;
-  else if(cfg.nomModel==="rate") nomPay=toBase(cfg, s.nomIncl)*(cfg.nomValue/100);
   const allowTotal=cfg.allowances.reduce((a,x)=>a+x.amount,0);
   const deductTotal=cfg.deductions.reduce((a,x)=>a+x.amount,0);
 
@@ -753,7 +780,7 @@ function calcStaff(cfg, s){
   if(s.contract!=="業務委託" && deductTotal>0) flags.push({lv:"warn",t:`天引き ${yen(deductTotal)} は本人の同意（労使協定）が前提です`});
   if(s.contract!=="業務委託" && base===0 && cfg.guarantee===0 && commTotal>0) flags.push({lv:"warn",t:`完全歩合で保証給なし：最低保障の設定をご検討ください`});
 
-  return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, catCommission, catDetail, nomPay,
+  return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, catCommission, catDetail, nomPay, commAmount,
     freeComm, freeRate, nomBase, nomComm, nomRate,
     allowTotal:(s.contract==="業務委託"?0:allowTotal), commute:(s.contract==="業務委託"?0:commute), guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
 }
@@ -764,7 +791,7 @@ let pocMode=false;
 let payslipMode='staff'; // 'staff'=配布用（渡す）／'owner'=管理用（確認事項つき）
 function setPayslipMode(m){ payslipMode=m; const a=$('mode-staff'),b=$('mode-owner'); if(a)a.classList.toggle('active',m==='staff'); if(b)b.classList.toggle('active',m==='owner'); calcAll(); }
 function addStaff(v){
-  staff.push(v||{name:"スタッフ"+(staff.length+1), techIncl:0, retailIncl:0, nomCount:0, nomIncl:0, tenureYears:0, workedHours:160, overtimeHours:0,
+  staff.push(v||{name:"スタッフ"+(staff.length+1), techIncl:0, retailIncl:0, nomCount:0, nomIncl:0, commAmount:0, tenureYears:0, workedHours:160, overtimeHours:0,
     contract:"雇用", gender:"", workPref:"", workDays:22, commute:0, commuteMode:"公共", commuteKm:0, nightHours:0, holidayHours:0, fixedOT:0, genkyu:0, bonus:0, bonusPrev:0, bonusRate:0, stdReward:260000, birth:"", hireDate:"", retireDate:"", age40:false, koyoIns:true, sanpq:false, shakai:true, taxCol:"甲", spouse:false, deps:0, taxAdd:0, jutec:0, jumin:0});
   renderInput();
 }
@@ -777,6 +804,10 @@ function renderStaff(){
     html+=`<div><label>氏名</label><input value="${s.name}" oninput="upd(${i},'name',this.value)"></div>`;
     const gyomu=(s.contract==="業務委託");
     html+=`<div><label>雇用形態</label><select onchange="upd(${i},'contract',this.value);renderStaff()"><option value="雇用"${!gyomu?" selected":""}>雇用（社員・アルバイト）</option><option value="業務委託"${gyomu?" selected":""}>業務委託（面貸し・シェアサロン）</option></select><div class="hint">${gyomu?"報酬＝売上×歩合−材料費等。社保・源泉・最賃は対象外":"社保・源泉・最賃あり"}</div></div>`;
+    if(cfg.payMode==="amount"){
+      html+=`<div class="subhead group">歩合</div>`;
+      html+=`<div><label>歩合給（円）</label><input type="number" value="${s.commAmount||''}" oninput="upd(${i},'commAmount',this.value)"><div class="hint">サロンで決めた今月の歩合額を入力（社保・税・明細は自動）</div></div>`;
+    } else {
     html+=`<div class="subhead group">売上</div>`;
     const techLabel=(cfg.nomModel==="split")?"フリー技術売上（指名以外・税込）":"技術売上（税込・円）";
     const techHint=(cfg.nomModel==="split")?`<div class="hint">指名分は下の「指名売上」へ（別率で計算）</div>`:'';
@@ -786,6 +817,7 @@ function renderStaff(){
     if(cfg.nomModel==="perCount") html+=`<div><label>指名件数</label><input type="number" value="${s.nomCount}" oninput="upd(${i},'nomCount',this.value)"></div>`;
     if(cfg.nomModel==="rate"||cfg.nomModel==="split") html+=`<div><label>指名売上（税込・円）</label><input type="number" value="${s.nomIncl}" oninput="upd(${i},'nomIncl',this.value)">${cfg.nomModel==="split"?`<div class="hint">指名売上（税抜）× ${num(cfg.nomValue)}%</div>`:''}</div>`;
     if(cfg.techModel==="tenure") html+=`<div><label>勤続年数</label><input type="number" value="${s.tenureYears}" oninput="upd(${i},'tenureYears',this.value)"></div>`;
+    }
     if(!gyomu){
     html+=`<div class="subhead group">勤怠</div>`;
     html+=`<div><label>勤務日数（日/月）</label><input type="number" value="${s.workDays}" oninput="upd(${i},'workDays',this.value)"></div>`;
@@ -902,22 +934,28 @@ function refreshRowTotal(i){ const cfg=getConfig(); const r=calcStaff(cfg,staff[
 function renderStaffTable(){
   const cfg=getConfig(); const cats=(cfg.saleCats||[]).filter(c=>c.name);
   const inp=(i,f,v,w)=>`<input type="number" value="${v||v===0?v:''}" oninput="upd(${i},'${f}',this.value);refreshRowTotal(${i})" style="width:${w||100}px;padding:6px 8px;text-align:right">`;
-  let h=`<div class="scroll"><table style="font-size:13px"><thead><tr><th style="text-align:left">名前</th><th>${cfg.nomModel==='split'?'フリー技術売上':'技術売上'}</th><th>店販</th>`;
-  cats.forEach(c=>h+=`<th>${c.name}</th>`);
-  if(cfg.nomModel==='perCount') h+=`<th>指名件数</th>`; else if(cfg.nomModel==='rate'||cfg.nomModel==='split') h+=`<th>指名売上</th>`;
+  const amt=cfg.payMode==='amount';
+  let h=`<div class="scroll"><table style="font-size:13px"><thead><tr><th style="text-align:left">名前</th>`;
+  if(amt){ h+=`<th>歩合給</th>`; }
+  else { h+=`<th>${cfg.nomModel==='split'?'フリー技術売上':'技術売上'}</th><th>店販</th>`;
+    cats.forEach(c=>h+=`<th>${c.name}</th>`);
+    if(cfg.nomModel==='perCount') h+=`<th>指名件数</th>`; else if(cfg.nomModel==='rate'||cfg.nomModel==='split') h+=`<th>指名売上</th>`; }
   h+=`<th>勤務日</th><th>労働h</th><th>通勤</th><th>総支給</th><th>手取り</th><th></th></tr></thead><tbody>`;
   staff.forEach((s,i)=>{ const gy=(s.contract==='業務委託'); const r=calcStaff(cfg,s);
     h+=`<tr><td><input value="${s.name||''}" oninput="upd(${i},'name',this.value)" style="width:92px;padding:6px 8px"></td>`;
+    if(amt){ h+=`<td>${inp(i,'commAmount',s.commAmount)}</td>`; }
+    else {
     h+=`<td>${inp(i,'techIncl',s.techIncl)}</td><td>${inp(i,'retailIncl',s.retailIncl)}</td>`;
     cats.forEach((c,ci)=>h+=`<td><input type="number" value="${(s.catSales&&s.catSales[c.name])||''}" oninput="updCat(${i},${ci},this.value);refreshRowTotal(${i})" style="width:100px;padding:6px 8px;text-align:right"></td>`);
     if(cfg.nomModel==='perCount') h+=`<td>${inp(i,'nomCount',s.nomCount,80)}</td>`; else if(cfg.nomModel==='rate'||cfg.nomModel==='split') h+=`<td>${inp(i,'nomIncl',s.nomIncl)}</td>`;
+    }
     h+=`<td>${gy?'—':inp(i,'workDays',s.workDays,68)}</td><td>${gy?'—':inp(i,'workedHours',s.workedHours,68)}</td><td>${gy?'—':inp(i,'commute',s.commute,88)}</td>`;
     h+=`<td style="text-align:right;font-weight:800;color:var(--navy)" id="rowtot-${i}">${yen(r.gross)}</td>`;
     h+=`<td style="text-align:right;font-weight:800;color:var(--gold)" id="rownet-${i}">${yen(payslipNums(cfg,s,r).net)}</td>`;
     h+=`<td><button class="del" onclick="rmStaff(${i})">×</button></td></tr>`;
   });
   let tot=0, totNet=0; staff.forEach(s=>{const r2=calcStaff(cfg,s); tot+=r2.gross; totNet+=payslipNums(cfg,s,r2).net;});
-  const span=6+cats.length+(cfg.nomModel!=='none'?1:0);
+  const span=amt?5:(6+cats.length+(cfg.nomModel!=='none'?1:0));
   h+=`<tr style="border-top:2px solid var(--navy)"><td colspan="${span}" style="text-align:right;font-weight:800">合計 ${staff.length}名</td><td style="text-align:right;font-weight:800" id="tabtot">${yen(tot)}</td><td style="text-align:right;font-weight:800;color:var(--gold)" id="tabnet">${yen(totNet)}</td><td></td></tr>`;
   h+=`</tbody></table></div><p class="hint" style="margin-top:8px">売上は税込。社保・税・個別歩合・口座など細かい設定は「カード式」の各スタッフ「詳細」から（毎月は触りません）。</p>`;
   $('staffTable').innerHTML=h;
@@ -1050,6 +1088,9 @@ function renderPayslip(cfg,rows){
     const deductTotal=sh.total+tax+jumin+r.deductTotal+genkyu;
     const net=r.gross-deductTotal;
     const bLines=[];
+    if(cfg.payMode==="amount"){
+      if((r.commAmount||0)!==0) bLines.push([`歩合給（金額で直接入力）`, r.commAmount||0]);
+    } else {
     if(cfg.nomModel==="split"){
       if(num(s.techIncl)>0) bLines.push([`フリー技術売上 ${yen(s.techIncl)}（税抜 ${yen(r.techBase)}）× ${((r.freeRate||0)*100).toFixed(1)}%`, r.freeComm||0]);
       if(num(s.nomIncl)>0) bLines.push([`指名売上 ${yen(s.nomIncl)}（税抜 ${yen(r.nomBase)}）× ${((r.nomRate||0)*100).toFixed(1)}%`, r.nomComm||0]);
@@ -1057,6 +1098,7 @@ function renderPayslip(cfg,rows){
     if(num(s.retailIncl)>0) bLines.push([`店販 ${yen(s.retailIncl)}（税抜 ${yen(r.retailBase)}）× ${(cfg.retailRate*100).toFixed(1)}%`, r.retailCommission]);
     (r.catDetail||[]).forEach(c=>{ const inc=(s.catSales&&s.catSales[c.name])||0; bLines.push([`${c.name} ${yen(inc)}（税抜 ${yen(toBase(cfg,inc))}）× ${(c.rate*100).toFixed(1)}%`, c.amount]); });
     if(r.nomPay>0) bLines.push([cfg.nomModel==="perCount"?`指名 ${num(s.nomCount)}件 × ${yen(cfg.nomValue)}`:`指名売上 ${yen(s.nomIncl)}（税抜 ${yen(toBase(cfg,s.nomIncl))}）× ${cfg.nomValue}%`, r.nomPay]);
+    }
     const basisHtml = bLines.length ? `<div class="calc-basis"><div class="cb-title">歩合の計算（スタッフに渡せる内訳）</div>${bLines.map(l=>`<div class="cb-row"><span>${l[0]}</span><b>${yen(l[1])}</b></div>`).join('')}</div>` : '';
     h+=`<div class="payslip">
       <div class="ph"><div><div class="doc-title">給与明細書</div><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div></div>
@@ -1065,10 +1107,10 @@ function renderPayslip(cfg,rows){
       <div class="scroll"><table><tbody>
       <tr><th style="text-align:left">支給</th><th></th><th style="text-align:left">控除</th><th></th></tr>
       <tr><td>基本給</td><td>${yen(r.base)}</td><td>健康保険料</td><td>${yen(sh.health)}</td></tr>
-      <tr><td>技術歩合${cfg.nomModel==="split"?"（フリー＋指名）":`（${(r.rate*100).toFixed(1)}%）`}</td><td>${yen(r.techCommission)}</td><td>介護保険料${af.kaigo?"":"（対象外）"}</td><td>${yen(sh.kaigo)}</td></tr>
-      <tr><td>店販還元</td><td>${yen(r.retailCommission)}</td><td>厚生年金保険料</td><td>${yen(sh.pension)}</td></tr>
+      <tr><td>${cfg.payMode==="amount"?"歩合給":`技術歩合${cfg.nomModel==="split"?"（フリー＋指名）":`（${(r.rate*100).toFixed(1)}%）`}`}</td><td>${yen(r.techCommission)}</td><td>介護保険料${af.kaigo?"":"（対象外）"}</td><td>${yen(sh.kaigo)}</td></tr>
+      <tr><td>店販還元</td><td>${cfg.payMode==="amount"?"—":yen(r.retailCommission)}</td><td>厚生年金保険料</td><td>${yen(sh.pension)}</td></tr>
       ${(r.catDetail||[]).map(c=>`<tr><td>${c.name}（${(c.rate*100).toFixed(1)}%）</td><td>${yen(c.amount)}</td><td></td><td></td></tr>`).join('')}
-      <tr><td>指名${cfg.nomModel==="split"?'<span class="muted">技術歩合に含む</span>':''}</td><td>${cfg.nomModel==="split"?"—":yen(r.nomPay)}</td><td>雇用保険料</td><td>${yen(sh.koyo)}</td></tr>
+      <tr><td>指名${cfg.nomModel==="split"?'<span class="muted">技術歩合に含む</span>':''}</td><td>${(cfg.nomModel==="split"||cfg.payMode==="amount")?"—":yen(r.nomPay)}</td><td>雇用保険料</td><td>${yen(sh.koyo)}</td></tr>
       <tr><td>保証補填</td><td>${r.guaranteeTopUp>0?yen(r.guaranteeTopUp):"—"}</td>
         <td>所得税（源泉）<span class="muted">${autoTax!=null?"自動":"手入力"}</span></td>
         <td>${autoTax!=null? yen(autoTax) : (payslipMode==='staff'? yen(tax) : `<input type="number" value="${s.jutec}" style="width:100px;padding:4px" onchange="staff[${i}].jutec=num(this.value);calcAll()">`)}</td></tr>
@@ -1209,6 +1251,15 @@ function runTests(){
   cases.push({label:"フリー40%＋指名55%（別率・二重計上なし）",cfg:cfg7,s:s7,
     expect:{techCommission:460000,nomPay:0,gross:640000}});
 
+  // Case 8: 歩合を金額で直接入力（payMode='amount'・売上は無視して歩合額をそのまま使う）
+  const cfg8={salonName:"T8",taxRate:0.10,salesBasis:"excl",baseSalary:200000,guarantee:0,minWage:1050,shotei:160,
+    payMode:"amount",techModel:"flat",techRate:0.40,tiers:[],tenure:[],retailRate:0.10,nomModel:"rate",nomValue:10,
+    allowances:[{name:"役職",amount:20000}],deductions:[]};
+  const s8={name:"H",contract:"雇用",techIncl:1100000,retailIncl:88000,nomIncl:200000,commAmount:150000,tenureYears:0,workedHours:170,overtimeHours:0};
+  // amount：歩合=150,000（技術/店販/指名の売上は無視）／基本200,000＋手当20,000／総支給=370,000
+  cases.push({label:"歩合を金額で直接入力（売上は無視・歩合額をそのまま）",cfg:cfg8,s:s8,
+    expect:{techCommission:150000,retailCommission:0,nomPay:0,gross:370000}});
+
   // Case 5-7: 社会保険料（協会けんぽ額表と1円照合／東京 令和8）
   const shakaiCases=[
     {label:"社保 東京・標準報酬30万・40歳未満（健保9.85%）",args:[300000,"東京都",false,400000],
@@ -1338,7 +1389,7 @@ function serializeState(){
   return {v:1,
     s:{salonName:g('salonName'),targetYm:g('targetYm'),taxRate:g('taxRate'),salesBasis:g('salesBasis'),
        baseSalary:g('baseSalary'),guarantee:g('guarantee'),prefecture:g('prefecture'),shakaiApply:g('shakaiApply'),payDate:g('payDate'),shotei:g('shotei'),
-       techModel:g('techModel'),techRate:g('techRate'),retailRate:g('retailRate'),nomModel:g('nomModel'),nomValue:g('nomValue'),tierMode:(document.querySelector('input[name="tierMode"]:checked')||{}).value||'whole'},
+       payMode:g('payMode'),techModel:g('techModel'),techRate:g('techRate'),retailRate:g('retailRate'),nomModel:g('nomModel'),nomValue:g('nomValue'),tierMode:(document.querySelector('input[name="tierMode"]:checked')||{}).value||'whole'},
     tiers:[...document.querySelectorAll('.tier-row')].map(r=>({upTo:r.querySelector('.t-upto').value,rate:r.querySelector('.t-rate').value})),
     tenure:[...document.querySelectorAll('.tenure-row')].map(r=>({years:r.querySelector('.te-years').value,rate:r.querySelector('.te-rate').value})),
     allowances:[...document.querySelectorAll('.allow-row')].map(r=>({name:r.querySelector('.a-name').value,amount:r.querySelector('.a-amt').value,minInc:r.querySelector('.a-min')?r.querySelector('.a-min').checked:true})),
@@ -1357,7 +1408,7 @@ function restoreState(o){
   $('allowRows').innerHTML=''; (o.allowances||[]).forEach(a=>addAllow({name:a.name,amount:a.amount,minInc:a.minInc}));
   $('deductRows').innerHTML=''; (o.deductions||[]).forEach(d=>addDeduct({name:d.name,amount:d.amount}));
   $('saleCatRows').innerHTML=''; (o.saleCats||[]).forEach(c=>addSaleCat({name:c.name,rate:c.rate}));
-  $('techModel').onchange(); $('nomModel').onchange();
+  $('techModel').onchange(); $('nomModel').onchange(); if($('payMode'))$('payMode').onchange();
   applyPref();
   staff = Array.isArray(o.staff)? o.staff : staff;
   renderStaff();
