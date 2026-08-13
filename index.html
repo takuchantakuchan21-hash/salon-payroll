@@ -88,6 +88,20 @@
   .btn.navy{background:var(--navy);box-shadow:0 4px 12px rgba(22,35,61,.25)}
   .btn.sm{padding:7px 13px;font-size:12.5px}
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .input-summary{display:flex;gap:0;align-items:stretch;background:var(--navy);border-radius:14px;padding:4px;margin-bottom:16px;flex-wrap:wrap}
+  .input-summary>div{flex:1;min-width:120px;padding:11px 16px;display:flex;flex-direction:column;gap:3px;position:relative}
+  .input-summary>div+div::before{content:"";position:absolute;left:0;top:22%;height:56%;width:1px;background:rgba(255,255,255,.16)}
+  .input-summary .lbl{font-size:11px;color:rgba(255,255,255,.7);font-weight:700;letter-spacing:.02em}
+  .input-summary .val{font-size:19px;color:#fff;font-weight:800;letter-spacing:-.01em}
+  .input-summary .val.gold{color:#e4c268}
+  .live-net{margin-top:6px;border:1px solid var(--gold);background:var(--gold-soft);border-radius:12px;padding:12px 15px}
+  .live-net .net-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .live-net .net-lbl{font-size:12.5px;color:var(--navy);font-weight:800}
+  .live-net .net-val{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
+  .live-net .net-val.gold{color:#a67c1f}
+  .live-net .net-break{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed #e2cf97}
+  .live-net .net-break span{font-size:12px;color:var(--sub)}
+  .live-net .net-break b{color:var(--ink);font-weight:700;margin-left:2px}
   .staff-card{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;background:var(--card);box-shadow:var(--shadow)}
   .staff-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
   .staff-card .top strong{font-size:14px;color:var(--navy);display:flex;align-items:center;gap:8px}
@@ -317,7 +331,13 @@
   <section id="input" class="tabpage hidden">
     <div class="card">
       <h2><span class="n">2</span> 今月のスタッフ別データ</h2>
-      <p class="muted" style="font-size:12.5px;margin-top:0">売上は<b>税込</b>で入力してください（設定に合わせて自動で税抜へ換算します）。</p>
+      <p class="muted" style="font-size:12.5px;margin-top:0">売上は<b>税込</b>で入力してください（設定に合わせて自動で税抜へ換算します）。数字を入れるとその場で手取りが出ます。</p>
+      <div class="input-summary no-print" id="inputSummary">
+        <div><span class="lbl">今月の対象</span><span class="val" id="sumCount">—</span></div>
+        <div><span class="lbl">総支給 合計</span><span class="val" id="sumGross">—</span></div>
+        <div><span class="lbl">手取り 合計</span><span class="val gold" id="sumNet">—</span></div>
+        <div><span class="lbl">売上 未入力</span><span class="val" id="sumUnfilled">—</span></div>
+      </div>
       <div class="seg-toggle no-print" style="display:inline-flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;margin-bottom:14px">
         <button id="im-card" class="segbtn active" onclick="setInputMode('card')">カード式（1人ずつ）</button>
         <button id="im-list" class="segbtn" onclick="setInputMode('list')">一覧式（表で全員）</button>
@@ -575,13 +595,13 @@ function addDeduct(v={name:"",amount:""}){
 /* 自由に追加できる売上カテゴリ（ネイル/マツエク/物販等をサロンが名前＋率で作る） */
 function addSaleCat(v={name:"",rate:""}){
   const d=document.createElement("div"); d.className="grid salecat-row"; d.style.marginBottom="8px";
-  d.innerHTML=`<div><label>カテゴリ名</label><input class="sc-name" value="${v.name}" placeholder="例：ネイル" onchange="if(window.__loaded){renderStaff();calcAll();}"></div>
+  d.innerHTML=`<div><label>カテゴリ名</label><input class="sc-name" value="${v.name}" placeholder="例：ヘッドスパ" onchange="if(window.__loaded){renderStaff();calcAll();}"></div>
     <div><label>還元率（%）</label><input class="sc-rate" type="number" step="0.5" value="${v.rate}" onchange="if(window.__loaded)calcAll();"></div>
     <div style="align-self:end"><button class="del" onclick="this.closest('.salecat-row').remove();if(window.__loaded){renderStaff();calcAll();saveState();}">× 削除</button></div>`;
   $("saleCatRows").appendChild(d);
 }
 /* スタッフ別の追加カテゴリ売上（catIndexで参照＝リネームに強い） */
-function updCat(i,ci,v){ const c=(getConfig().saleCats||[])[ci]; if(!c||!c.name) return; staff[i].catSales=staff[i].catSales||{}; staff[i].catSales[c.name]=num(v); if(window.__loaded)saveState(); }
+function updCat(i,ci,v){ const c=(getConfig().saleCats||[])[ci]; if(!c||!c.name) return; staff[i].catSales=staff[i].catSales||{}; staff[i].catSales[c.name]=num(v); syncTotals(); if(window.__loaded)saveState(); }
 
 /* ---------- model toggles ---------- */
 $("techModel").onchange=function(){
@@ -762,6 +782,7 @@ function renderStaff(){
     html+=`<div><label>通勤手段</label><select onchange="upd(${i},'commuteMode',this.value);renderStaff()"><option value="公共"${s.commuteMode!=="マイカー"?" selected":""}>公共交通（限度15万）</option><option value="マイカー"${s.commuteMode==="マイカー"?" selected":""}>マイカー等（距離別）</option></select></div>`;
     if(s.commuteMode==="マイカー") html+=`<div><label>片道距離（km）</label><input type="number" value="${s.commuteKm}" oninput="upd(${i},'commuteKm',this.value)"><div class="hint">非課税限度 ${yen(commuteLimit("マイカー",s.commuteKm))}</div></div>`;
     }
+    html+=cardTotalPanel(i,gyomu);
     const stdOpts=STD_GRADES.map(([std,low],gi)=>{const hi=(gi<STD_GRADES.length-1?STD_GRADES[gi+1][1]:null);const range=hi?`${(low||0).toLocaleString()}〜${hi.toLocaleString()}`:`${low.toLocaleString()}〜`;return `<option value="${std}"${s.stdReward===std?" selected":""}>${std.toLocaleString()}円（報酬月額 ${range}）</option>`;}).join("");
     if(gyomu){
       html+=`</div><div class="rowbox" style="margin-top:2px;font-size:12px;color:var(--sub)">業務委託は<b>報酬（売上×歩合−材料費・場所代）</b>のみ計算します（社会保険・源泉・最低賃金は対象外）。<br><span class="flag warn" style="margin-top:6px">実態が雇用の場合は業務委託にできません。契約内容をご確認ください。</span></div>`;
@@ -811,17 +832,50 @@ function renderStaff(){
     html+=`</div></details>`;
     c.innerHTML=html; wrap.appendChild(c);
   });
+  syncTotals();
+}
+/* 各カードの下に出す「この内容での手取り」パネル。入力するたび syncTotals() が中身を更新する */
+function cardTotalPanel(i,gyomu){
+  if(gyomu) return `<div class="live-net" style="grid-column:1/-1"><div class="net-main"><span class="net-lbl">この内容での支払額（報酬−材料費等）</span><span class="net-val gold" id="cardnet-${i}">—</span></div></div>`;
+  return `<div class="live-net" style="grid-column:1/-1"><div class="net-main"><span class="net-lbl">この内容での手取り</span><span class="net-val gold" id="cardnet-${i}">—</span></div>`+
+    `<div class="net-break"><span>総支給<b id="cardgross-${i}">—</b></span><span>社会保険<b id="cardsha-${i}">—</b></span><span>所得税･住民税<b id="cardtax-${i}">—</b></span><span>その他控除<b id="cardother-${i}">—</b></span></div></div>`;
+}
+/* 入力のたびに、各カードの手取り・上部の集計ストリップ・一覧式の行合計をまとめて更新（計算は既存関数を使うだけ＝金額ロジックは不変） */
+function syncTotals(){
+  const cfg=getConfig(); let tGross=0,tNet=0,filled=0;
+  staff.forEach((s,i)=>{
+    const r=calcStaff(cfg,s); const n=payslipNums(cfg,s,r);
+    tGross+=n.gross; tNet+=n.net;
+    const set=(id,v)=>{const e=$(id); if(e)e.textContent=v;};
+    const ded=v=>v>0?'−'+yen(v):yen(0);
+    set('cardnet-'+i, yen(n.net));
+    set('cardgross-'+i, yen(n.gross));
+    set('cardsha-'+i, ded(n.socialTotal));
+    set('cardtax-'+i, ded(n.tax+n.jumin));
+    set('cardother-'+i, ded(n.otherDeduct+(n.genkyu||0)));
+    set('rowtot-'+i, yen(r.gross));
+    set('rownet-'+i, yen(n.net));
+    const hasSales=num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.nomCount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0));
+    if(hasSales) filled++;
+  });
+  const setS=(id,v)=>{const e=$(id); if(e)e.textContent=v;};
+  setS('sumCount', staff.length+'人'); setS('sumGross', yen(tGross)); setS('sumNet', yen(tNet));
+  const un=staff.length-filled; setS('sumUnfilled', un===0?'なし ✓':un+'件');
+  const uEl=$('sumUnfilled'); if(uEl) uEl.classList.toggle('gold', un===0);
+  const g=$('tabtot'), gn=$('tabnet'); if(g)g.textContent=yen(tGross); if(gn)gn.textContent=yen(tNet);
 }
 function upd(i,k,v){
   if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref"||k==="bankName"||k==="branchName"||k==="acctType"||k==="acctNo"||k==="acctKana"||k==="role"||k==="base"||k==="techRateOwn") staff[i][k]=v;
   else if(k==="age40"||k==="spouse"||k==="shakai"||k==="koyoIns"||k==="sanpq"||k==="stdAuto") staff[i][k]=!!v;
   else staff[i][k]=num(v);
   if(k==="birth") renderStaff(); // 年齢バッジ・介護手動チェックの表示更新
+  syncTotals();
+  if(window.__loaded)saveState();
 }
 function rmStaff(i){ staff.splice(i,1); renderInput(); }
 /* 入力の見せ方：カード式（1人ずつ）／一覧式（表で全員）。オーナーが選ぶ */
 let inputMode='card';
-function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); }
+function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); syncTotals(); }
 function setInputMode(m){ inputMode=m; const a=$('im-card'),b=$('im-list'); if(a)a.classList.toggle('active',m==='card'); if(b)b.classList.toggle('active',m==='list'); const sl=$('staffList'),st=$('staffTable'); if(sl)sl.style.display=(m==='card')?'':'none'; if(st)st.style.display=(m==='list')?'':'none'; renderInput(); if(window.__loaded)saveState(); }
 function refreshRowTotal(i){ const cfg=getConfig(); const r=calcStaff(cfg,staff[i]); const c=$('rowtot-'+i); if(c)c.textContent=yen(r.gross); const n=$('rownet-'+i); if(n)n.textContent=yen(payslipNums(cfg,staff[i],r).net); const g=$('tabtot'),gn=$('tabnet'); if(g||gn){ let t=0,tn=0; staff.forEach(s=>{const rr=calcStaff(cfg,s); t+=rr.gross; tn+=payslipNums(cfg,s,rr).net;}); if(g)g.textContent=yen(t); if(gn)gn.textContent=yen(tn); } if(window.__loaded)saveState(); }
 /* 一覧式（表）：1人1行・売上等を横に入力→右端に総支給が自動。細かい設定はカード式の「詳細」から */
@@ -847,6 +901,7 @@ function renderStaffTable(){
   h+=`<tr style="border-top:2px solid var(--navy)"><td colspan="${span}" style="text-align:right;font-weight:800">合計 ${staff.length}名</td><td style="text-align:right;font-weight:800" id="tabtot">${yen(tot)}</td><td style="text-align:right;font-weight:800;color:var(--gold)" id="tabnet">${yen(totNet)}</td><td></td></tr>`;
   h+=`</tbody></table></div><p class="hint" style="margin-top:8px">売上は税込。社保・税・個別歩合・口座など細かい設定は「カード式」の各スタッフ「詳細」から（毎月は触りません）。</p>`;
   $('staffTable').innerHTML=h;
+  syncTotals();
 }
 
 /* 設定レベルの安全網警告（料率の適用年月・地域別vs特定最賃） */
