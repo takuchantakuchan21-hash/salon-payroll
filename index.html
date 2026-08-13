@@ -88,20 +88,21 @@
   .btn.navy{background:var(--navy);box-shadow:0 4px 12px rgba(22,35,61,.25)}
   .btn.sm{padding:7px 13px;font-size:12.5px}
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-  .input-summary{display:flex;gap:0;align-items:stretch;background:var(--navy);border-radius:14px;padding:4px;margin-bottom:16px;flex-wrap:wrap}
-  .input-summary>div{flex:1;min-width:120px;padding:11px 16px;display:flex;flex-direction:column;gap:3px;position:relative}
-  .input-summary>div+div::before{content:"";position:absolute;left:0;top:22%;height:56%;width:1px;background:rgba(255,255,255,.16)}
-  .input-summary .lbl{font-size:11px;color:rgba(255,255,255,.7);font-weight:700;letter-spacing:.02em}
-  .input-summary .val{font-size:19px;color:#fff;font-weight:800;letter-spacing:-.01em}
-  .input-summary .val.gold{color:#e4c268}
-  .live-net{margin-top:6px;border:1px solid var(--gold);background:var(--gold-soft);border-radius:12px;padding:12px 15px}
+  .input-summary{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .input-summary>div{flex:1;min-width:132px;padding:13px 16px;background:#fff;border:1px solid var(--line-2);border-radius:12px;display:flex;flex-direction:column;gap:4px}
+  .input-summary .lbl{font-size:11px;color:var(--sub);font-weight:700;letter-spacing:.02em}
+  .input-summary .val{font-size:20px;color:var(--navy);font-weight:800;letter-spacing:-.01em}
+  .input-summary .val.blue{color:var(--blue)}
+  .input-summary .val.ok{color:#1a7f52}
+  .input-summary .net-card{background:var(--blue-soft);border-color:#cfe0f7}
+  .input-summary .net-card .lbl{color:var(--blue)}
+  .live-net{margin-top:6px;border:1px solid #cfe0f7;background:var(--blue-soft);border-radius:12px;padding:13px 16px}
   .live-net .net-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
   .live-net .net-lbl{font-size:12.5px;color:var(--navy);font-weight:800}
-  .live-net .net-val{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
-  .live-net .net-val.gold{color:#a67c1f}
-  .live-net .net-break{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed #e2cf97}
+  .live-net .net-val{font-size:25px;font-weight:800;letter-spacing:-.01em;color:var(--blue)}
+  .live-net .net-break{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid #d5e2f6}
   .live-net .net-break span{font-size:12px;color:var(--sub)}
-  .live-net .net-break b{color:var(--ink);font-weight:700;margin-left:2px}
+  .live-net .net-break b{color:var(--navy);font-weight:800;margin-left:3px}
   .staff-card{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;background:var(--card);box-shadow:var(--shadow)}
   .staff-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
   .staff-card .top strong{font-size:14px;color:var(--navy);display:flex;align-items:center;gap:8px}
@@ -335,7 +336,7 @@
       <div class="input-summary no-print" id="inputSummary">
         <div><span class="lbl">今月の対象</span><span class="val" id="sumCount">—</span></div>
         <div><span class="lbl">総支給 合計</span><span class="val" id="sumGross">—</span></div>
-        <div><span class="lbl">手取り 合計</span><span class="val gold" id="sumNet">—</span></div>
+        <div class="net-card"><span class="lbl">手取り 合計</span><span class="val blue" id="sumNet">—</span></div>
         <div><span class="lbl">売上 未入力</span><span class="val" id="sumUnfilled">—</span></div>
       </div>
       <div class="seg-toggle no-print" style="display:inline-flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;margin-bottom:14px">
@@ -836,8 +837,8 @@ function renderStaff(){
 }
 /* 各カードの下に出す「この内容での手取り」パネル。入力するたび syncTotals() が中身を更新する */
 function cardTotalPanel(i,gyomu){
-  if(gyomu) return `<div class="live-net" style="grid-column:1/-1"><div class="net-main"><span class="net-lbl">この内容での支払額（報酬−材料費等）</span><span class="net-val gold" id="cardnet-${i}">—</span></div></div>`;
-  return `<div class="live-net" style="grid-column:1/-1"><div class="net-main"><span class="net-lbl">この内容での手取り</span><span class="net-val gold" id="cardnet-${i}">—</span></div>`+
+  if(gyomu) return `<div class="live-net" style="grid-column:1/-1"><div class="net-main"><span class="net-lbl">この内容での支払額（報酬−材料費等）</span><span class="net-val" id="cardnet-${i}">—</span></div></div>`;
+  return `<div class="live-net" style="grid-column:1/-1"><div class="net-main"><span class="net-lbl">この内容での手取り</span><span class="net-val" id="cardnet-${i}">—</span></div>`+
     `<div class="net-break"><span>総支給<b id="cardgross-${i}">—</b></span><span>社会保険<b id="cardsha-${i}">—</b></span><span>所得税･住民税<b id="cardtax-${i}">—</b></span><span>その他控除<b id="cardother-${i}">—</b></span></div></div>`;
 }
 /* 入力のたびに、各カードの手取り・上部の集計ストリップ・一覧式の行合計をまとめて更新（計算は既存関数を使うだけ＝金額ロジックは不変） */
@@ -861,7 +862,7 @@ function syncTotals(){
   const setS=(id,v)=>{const e=$(id); if(e)e.textContent=v;};
   setS('sumCount', staff.length+'人'); setS('sumGross', yen(tGross)); setS('sumNet', yen(tNet));
   const un=staff.length-filled; setS('sumUnfilled', un===0?'なし ✓':un+'件');
-  const uEl=$('sumUnfilled'); if(uEl) uEl.classList.toggle('gold', un===0);
+  const uEl=$('sumUnfilled'); if(uEl) uEl.classList.toggle('ok', un===0);
   const g=$('tabtot'), gn=$('tabnet'); if(g)g.textContent=yen(tGross); if(gn)gn.textContent=yen(tNet);
 }
 function upd(i,k,v){
@@ -1437,7 +1438,14 @@ addStaff({name:"佐藤",gender:"女",contract:"雇用",workDays:21,techIncl:5500
 renderStaff();
 runTests();
 /* 保存済みがあれば復元（＝前月の設定・スタッフを引き継ぐ）→以後は変更のたび自動保存 */
-try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ restoreState(JSON.parse(saved)); } }catch(e){}
+try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ let o=JSON.parse(saved);
+  /* 一度だけの掃除：過去の例示で残った「ネイル/マツエク」カテゴリを保存状態から除去（今後ユーザーが自分で追加した分は消さない） */
+  if(localStorage.getItem('salonMigNail')!=='1'){
+    if(Array.isArray(o.saleCats)) o.saleCats=o.saleCats.filter(c=>!(['ネイル','マツエク'].includes(String(c&&c.name||'').trim())));
+    localStorage.setItem('salonMigNail','1');
+  }
+  restoreState(o); saveState();
+} }catch(e){}
 try{ if(localStorage.getItem('salonOnboardDone')){ const o=document.getElementById('onboard'); if(o) o.style.display='none'; } }catch(e){}
 window.__loaded=true;
 document.querySelector('.wrap').addEventListener('change', ()=>{ if(window.__loaded) saveState(); });
