@@ -71,6 +71,11 @@
   .hint{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.45}
   .rowbox{border:1px solid var(--line);background:var(--bg-soft);border-radius:12px;padding:14px;margin-top:10px}
   .subhead{font-size:12.5px;font-weight:800;color:var(--navy);margin:16px 0 8px}
+  .advbox{border:1px solid var(--line-2);border-radius:12px;padding:12px 16px;background:#fafbfc}
+  .advbox>summary{font-size:13px;font-weight:800;color:var(--navy);cursor:pointer;list-style:none;user-select:none}
+  .advbox>summary::-webkit-details-marker{display:none}
+  .advbox>summary::before{content:"▸ ";color:var(--gold);font-weight:900}
+  .advbox[open]>summary::before{content:"▾ "}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{padding:9px 11px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
   th:first-child,td:first-child{text-align:left}
@@ -211,32 +216,37 @@
         <div><label>サロン名</label><input id="salonName" value="サンプルサロン"></div>
         <div><label>給与計算 対象月</label><input id="targetYm" type="month" value="2026-08"><div class="hint">年齢境界の自動判定に使用</div></div>
         <div><label>支給日</label><input id="payDate" type="date"></div>
-        <div><label>消費税率（%）</label><input id="taxRate" type="number" value="10" step="1"></div>
-        <div>
-          <label>歩合の対象売上</label>
-          <select id="salesBasis"><option value="excl">税抜（税込÷1.1）</option><option value="incl">税込のまま</option></select>
-          <div class="hint">多くは税抜で計算</div>
-        </div>
         <div><label>固定基本給（円/月）</label><input id="baseSalary" type="number" value="180000"><div class="hint">完全歩合なら 0</div></div>
         <div><label>保証給（最低保証・円/月）</label><input id="guarantee" type="number" value="0"><div class="hint">無しは 0</div></div>
-        <div><label>月平均所定労働時間</label><input id="shotei" type="number" value="160"><div class="hint">残業単価の計算に使用</div></div>
-        <div>
-          <label>社会保険の適用</label>
-          <select id="shakaiApply">
-            <option value="法人">法人（健保・厚年 強制適用）</option>
-            <option value="個人任意">個人経営＋任意適用の認可あり（適用）</option>
-            <option value="個人非適用">個人経営（理美容＝非適用業種／健保・厚年なし）</option>
-          </select>
-          <div class="hint">個人経営は原則 国保・国民年金</div>
-        </div>
         <div>
           <label>都道府県（最低賃金の判定用）</label>
           <select id="prefecture"></select>
           <div class="hint" id="prefHint">—</div>
         </div>
-        <div><label>最低賃金（円/時）※上書き可</label><input id="minWage" type="number" value="1050"><div class="hint">通常は自動。特定最賃のみ上書き</div></div>
       </div>
-      <div id="minwageBanner" class="disc" style="margin-top:6px;margin-bottom:0"></div>
+      <details class="advbox" style="margin-top:14px">
+        <summary>詳細設定（初回だけ設定すればOK）</summary>
+        <div class="grid" style="margin-top:12px">
+          <div>
+            <label>社会保険の適用</label>
+            <select id="shakaiApply">
+              <option value="法人">法人（健保・厚年 強制適用）</option>
+              <option value="個人任意">個人経営＋任意適用の認可あり（適用）</option>
+              <option value="個人非適用">個人経営（理美容＝非適用業種／健保・厚年なし）</option>
+            </select>
+            <div class="hint">個人経営は原則 国保・国民年金</div>
+          </div>
+          <div><label>月平均所定労働時間</label><input id="shotei" type="number" value="160"><div class="hint">残業単価の計算に使用</div></div>
+          <div>
+            <label>歩合の対象売上</label>
+            <select id="salesBasis"><option value="excl">税抜（税込÷1.1）</option><option value="incl">税込のまま</option></select>
+            <div class="hint">多くは税抜で計算</div>
+          </div>
+          <div><label>消費税率（%）</label><input id="taxRate" type="number" value="10" step="1"></div>
+          <div><label>最低賃金（円/時）※上書き可</label><input id="minWage" type="number" value="1050"><div class="hint">通常は自動。特定最賃のみ上書き</div></div>
+        </div>
+      </details>
+      <div id="minwageBanner" class="disc" style="margin-top:10px;margin-bottom:0"></div>
     </div>
 
     <div class="card">
@@ -244,11 +254,11 @@
       <p class="cardsub">ここは「率（歩合ルール）」だけ決めます。売上金額は毎月「② 毎月の入力」でスタッフごとに入れます。</p>
       <div class="grid">
         <div>
-          <label>歩合の型</label>
+          <label>歩合の決め方</label>
           <select id="techModel">
-            <option value="flat">定率（一律◯%）</option>
-            <option value="tiered">売上ランク別（帯ごとに率）</option>
-            <option value="tenure">勤続年数別（年数で率）</option>
+            <option value="flat">一律（みんな同じ◯%）</option>
+            <option value="tiered">売上で変わる（売上が多いほど率アップ）</option>
+            <option value="tenure">勤続年数で変わる（年数で率アップ）</option>
           </select>
         </div>
         <div id="flatBox"><label>技術歩合率（%）</label><input id="techRate" type="number" value="35" step="0.5"></div>
@@ -274,19 +284,20 @@
       <div class="grid">
         <div><label>店販の還元率（%）</label><input id="retailRate" type="number" value="10" step="0.5"><div class="hint">店販売上（税抜）×この率</div></div>
         <div>
-          <label>指名の型</label>
+          <label>指名手当（指名でつく上乗せ）</label>
           <select id="nomModel">
             <option value="none">なし</option>
-            <option value="perCount">1件あたり◯円</option>
-            <option value="rate">指名売上に別の率（フリーと別率）</option>
+            <option value="perCount">1指名につき◯円</option>
+            <option value="rate">指名売上の◯%</option>
           </select>
+          <div class="hint">お客様がスタッフを指名したときの上乗せ</div>
         </div>
-        <div id="nomValBox" class="hidden"><label>指名の単価 / 率</label><input id="nomValue" type="number" value="500"><div class="hint">「1件◯円」なら円、「◯%」なら%</div></div>
+        <div id="nomValBox" class="hidden"><label>金額 / 率</label><input id="nomValue" type="number" value="500"><div class="hint">「1指名◯円」なら円、「◯%」なら%</div></div>
       </div>
-      <div class="subhead">追加の売上カテゴリ（ネイル・マツエク・物販など）</div>
+      <div class="subhead">その他の歩合対象（ヘッドスパ・着付け など）</div>
       <div id="saleCatRows"></div>
-      <button class="btn ghost sm" onclick="addSaleCat();if(window.__loaded){renderStaff();saveState();}">＋ 売上カテゴリを追加</button>
-      <div class="hint" style="margin-top:8px">技術・店販の他に歩合を出す売上があれば、名前と率でここに追加。各スタッフの売上は「②毎月の入力」に欄が増えます。</div>
+      <button class="btn ghost sm" onclick="addSaleCat();if(window.__loaded){renderStaff();saveState();}">＋ 歩合対象を追加</button>
+      <div class="hint" style="margin-top:8px">技術・店販・指名のほかに歩合を出す売上があれば、名前と率で追加（例：ヘッドスパ、着付け。ネイルやまつ毛をやる店はそれもここに）。各スタッフの売上欄が「②毎月の入力」に増えます。</div>
 
       <div class="subhead" style="margin-top:16px">固定手当（役職手当・技術手当など）</div>
       <div id="allowRows"></div>
