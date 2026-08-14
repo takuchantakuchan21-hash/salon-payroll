@@ -46,6 +46,33 @@
   .note b{color:var(--warn)}
   .onboard{display:flex;gap:14px;align-items:center;justify-content:space-between;background:var(--gold-soft);border:1px solid #ecdcae;border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--ink);line-height:1.75}
   .onboard b{color:var(--navy)}
+  .wizard{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+  .wizard .wstep{flex:1;min-width:150px;display:flex;align-items:center;gap:10px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;transition:all .15s}
+  .wizard .wstep:hover{border-color:var(--navy)}
+  .wizard .wstep .wnum{flex:none;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#eef2f7;color:var(--sub)}
+  .wizard .wstep .wt{font-size:12.5px;font-weight:700;color:var(--sub);line-height:1.3}
+  .wizard .wstep .wt small{display:block;font-weight:500;font-size:10.5px;color:var(--sub)}
+  .wizard .wstep.active{border-color:var(--navy);background:var(--navy);box-shadow:0 2px 10px rgba(20,30,60,.12)}
+  .wizard .wstep.active .wnum{background:#fff;color:var(--navy)}
+  .wizard .wstep.active .wt,.wizard .wstep.active .wt small{color:#fff}
+  .wizard .wstep.done{border-color:#cfd8e6}
+  .wizard .wstep.done .wnum{background:var(--navy);color:#fff}
+  @media(max-width:640px){.wizard .wstep{min-width:0;flex:1 1 100%}}
+  .preset-btn{position:relative}
+  .preset-i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:6px;border-radius:50%;background:#eef2f7;color:var(--sub);font-size:9px;font-weight:800;vertical-align:middle;cursor:help}
+  .preset-btn:hover .preset-i{background:var(--navy);color:#fff}
+  .wiz-ov{position:fixed;inset:0;background:rgba(15,22,40,.55);z-index:1000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px}
+  .wiz-ov.on{display:flex}
+  .wiz{background:#fff;max-width:640px;width:100%;border-radius:16px;padding:26px 26px 22px;box-shadow:0 20px 60px rgba(15,22,40,.35)}
+  .wiz h3{font-size:19px;color:var(--navy);font-weight:800;margin:0 0 4px}
+  .wiz .wsub{font-size:12.5px;color:var(--sub);margin:0 0 18px;line-height:1.6}
+  .wiz-q{margin:0 0 18px}
+  .wiz-q>label{display:block;font-weight:800;color:var(--ink);font-size:13.5px;margin-bottom:8px}
+  .wiz-opts{display:flex;gap:8px;flex-wrap:wrap}
+  .wiz-opt{border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;background:#fff;transition:all .12s;user-select:none}
+  .wiz-opt:hover{border-color:var(--navy)}
+  .wiz-opt.sel{border-color:var(--navy);background:var(--navy);color:#fff}
+  .wiz-foot{display:flex;gap:10px;align-items:center;margin-top:22px;flex-wrap:wrap}
   @media(max-width:640px){.onboard{flex-direction:column;align-items:flex-start;gap:10px}}
   .segbtn{border:none;background:var(--card);color:var(--sub);padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.12s}
   .segbtn.active{background:var(--navy);color:#fff}
@@ -115,6 +142,8 @@
   .flag.warn{background:var(--warn-bg);color:var(--warn)}
   .flag.bad{background:var(--bad-bg);color:var(--bad)}
   .muted{color:var(--sub)}
+  .payslip .split-row td{background:var(--gold-soft)}
+  .payslip .split-k{font-size:11.5px;font-weight:800;color:var(--navy);letter-spacing:.02em}
   .hidden{display:none}
   .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
   .kpi div{background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:13px 18px;font-size:12px}
@@ -179,6 +208,48 @@
 </style>
 </head>
 <body>
+<div id="setupWizard" class="wiz-ov no-print">
+  <div class="wiz">
+    <h3>かんたん設定（30秒）</h3>
+    <p class="wsub">いくつか選ぶだけで、あなたのお店に合わせて画面を用意します。あとで自由に変えられます。分からなければ近いものでOK。</p>
+    <div class="wiz-q" data-q="keitai">
+      <label>1. お店の形態は？</label>
+      <div class="wiz-opts">
+        <div class="wiz-opt" data-v="法人" onclick="wizSelect(this)">法人・会社</div>
+        <div class="wiz-opt" data-v="個人非適用" onclick="wizSelect(this)">個人のお店</div>
+        <div class="wiz-opt" data-v="個人任意" onclick="wizSelect(this)">個人だが社会保険に加入</div>
+      </div>
+    </div>
+    <div class="wiz-q" data-q="who" data-multi="1">
+      <label>2. どんな働き方の人がいますか？（複数OK）</label>
+      <div class="wiz-opts">
+        <div class="wiz-opt" data-v="staff" onclick="wizSelect(this)">社員（月給＋歩合）</div>
+        <div class="wiz-opt" data-v="assist" onclick="wizSelect(this)">アシスタント（時給）</div>
+        <div class="wiz-opt" data-v="free" onclick="wizSelect(this)">面貸し・業務委託</div>
+      </div>
+    </div>
+    <div class="wiz-q" data-q="pay">
+      <label>3. 歩合はどう決めますか？</label>
+      <div class="wiz-opts">
+        <div class="wiz-opt" data-v="sales" onclick="wizSelect(this)">売上から計算する（率を決める）</div>
+        <div class="wiz-opt" data-v="amount" onclick="wizSelect(this)">金額を毎月直接入れる（Excel等で先に出す）</div>
+      </div>
+    </div>
+    <div class="wiz-q" data-q="base">
+      <label>4. 基本給の考え方は？</label>
+      <div class="wiz-opts">
+        <div class="wiz-opt" data-v="fixed" onclick="wizSelect(this)">固定給＋歩合</div>
+        <div class="wiz-opt" data-v="full" onclick="wizSelect(this)">完全歩合（保証給あり）</div>
+        <div class="wiz-opt" data-v="hourly" onclick="wizSelect(this)">時給が中心</div>
+      </div>
+    </div>
+    <div class="wiz-foot">
+      <button class="btn" onclick="applyWizard()">この設定で始める →</button>
+      <button class="btn ghost" onclick="closeWizard(true)">スキップして自分で設定する</button>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="hero">
     <div class="brand">airchair — サロン給与</div>
@@ -196,8 +267,22 @@
     </div>
   </div>
 
+  <div class="trust no-print">
+    <div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M9 15l2 2 4-4"/></svg></span><div><b>公式データで自動計算</b><span>協会けんぽ・国税庁の令和8年度の料率・税額表で計算します</span></div></div>
+    <div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg></span><div><b>法改正に追随</b><span>料率・税額表は改定に合わせて更新します（最賃は令和7年度・次回10月改定）</span></div></div>
+    <div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><div><b>最終額は顧問士業で確定（監修中β）</b><span>正式提供に向け社労士・税理士の監修を進めています。支給前にご確認ください</span></div></div>
+  </div>
+
   <div id="onboard" class="onboard no-print">
-    <div><b>はじめて使う方へ</b>　①「サロン設定」で"自分の店のルール"を決める → ②「毎月の入力」でスタッフの数字を入れる → 給与明細が出ます。<b>歩合の入れ方は2通り</b>（①設定の一番上で選択）：<b>売上を入れて自動計算</b>／<b>決まった歩合額を直接入力</b>。歩合をExcel等で先に出している店は「金額を直接入力」が早いです。分からない項目は"自動／おすすめ"のままでOK。まずはサンプルで試し、良ければ「サンプルを消して始める」で自分の店を入れてください。</div>
+    <div>
+      <b>はじめて使う方へ（3ステップ）</b>
+      <ul style="margin:6px 0 0;padding-left:18px;line-height:1.9">
+        <li>① 「サロン設定」で店のルールを<b>1回だけ</b>決める</li>
+        <li>② 「毎月の入力」で各スタッフの数字を入れる（役割を選ぶと要る欄だけ出ます）</li>
+        <li>③ 給与明細・賃金台帳が<b>自動で出る</b>。迷う欄は"自動／おすすめ"のままでOK</li>
+      </ul>
+      <div class="hint" style="margin-top:6px">まずは入っているサンプルで試し、良ければ「サンプルを消して始める」で自分の店を入れてください。</div>
+    </div>
     <button class="btn ghost sm" onclick="closeOnboard()" style="flex:none;white-space:nowrap">わかった</button>
   </div>
 
@@ -215,8 +300,14 @@
     <button class="tab" data-tab="payslip">④ 給与明細</button>
     <button class="tab" data-tab="chobo">⑤ 賃金台帳</button>
   </div>
+  <div id="wizard" class="wizard no-print" title="この順に進めば給与明細まで出ます">
+    <div class="wstep" data-step="setup" onclick="switchTab('setup')"><div class="wnum">1</div><div class="wt">店のルールを決める<small>最初の1回だけ</small></div></div>
+    <div class="wstep" data-step="input" onclick="switchTab('input')"><div class="wnum">2</div><div class="wt">スタッフの数字を入れる<small>毎月ここだけ</small></div></div>
+    <div class="wstep" data-step="result" onclick="switchTab('result')"><div class="wnum">3</div><div class="wt">給与明細ができる<small>手取りまで自動</small></div></div>
+  </div>
   <div class="no-print" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--sub);margin:-6px 0 16px">
     <span id="saveMark">この端末に自動保存（毎月は数字だけ変えればOK・翌月もこの内容から始まります）</span>
+    <button class="btn ghost sm" onclick="openWizard()">かんたん設定（質問で設定）</button>
     <button class="btn ghost sm" onclick="startFresh()">サンプルを消して始める</button>
     <button class="btn ghost sm" onclick="exportState()">書き出し（バックアップ）</button>
     <label class="btn ghost sm" style="cursor:pointer">読み込み<input type="file" accept="application/json" style="display:none" onchange="importState(this)"></label>
@@ -227,12 +318,29 @@
   <section id="setup" class="tabpage">
     <div class="card">
       <h2><span class="n">1</span> 基本設定</h2>
+      <div class="rowbox" style="margin-top:0;margin-bottom:16px">
+        <label style="font-weight:800;color:var(--navy)">お店のタイプ（いる人にチェック → 要る設定だけ表示します）</label>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:9px;font-size:13px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600"><input type="checkbox" id="stType_staff" style="width:auto" checked onchange="applyShopType()"> 社員（月給＋歩合）</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600"><input type="checkbox" id="stType_assist" style="width:auto" onchange="applyShopType()"> アシスタント（時給）</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600"><input type="checkbox" id="stType_free" style="width:auto" onchange="applyShopType()"> 面貸し・業務委託</label>
+        </div>
+      </div>
       <div class="grid">
         <div><label>サロン名</label><input id="salonName" value="サンプルサロン"></div>
         <div><label>給与計算 対象月</label><input id="targetYm" type="month" value="2026-08"><div class="hint">年齢境界の自動判定に使用</div></div>
         <div><label>支給日</label><input id="payDate" type="date"></div>
         <div><label>固定基本給（円/月）</label><input id="baseSalary" type="number" value="180000"><div class="hint">完全歩合なら 0</div></div>
         <div><label>保証給（最低保証・円/月）</label><input id="guarantee" type="number" value="0"><div class="hint">無しは 0</div></div>
+        <div id="shakaiField">
+          <label>お店の形態（社会保険）</label>
+          <select id="shakaiApply" onchange="if(window.__loaded)calcAll()">
+            <option value="法人">法人・会社（健保・厚年を引く）</option>
+            <option value="個人非適用">個人のお店（原則 引かない・国保/国民年金は本人）</option>
+            <option value="個人任意">個人だが社会保険に加入している</option>
+          </select>
+          <div class="hint">個人経営で常時5人未満は健保・厚年が原則なし。迷ったら「個人のお店」</div>
+        </div>
         <div>
           <label>都道府県（最低賃金の判定用）</label>
           <select id="prefecture"></select>
@@ -242,16 +350,7 @@
       <details class="advbox" style="margin-top:14px">
         <summary>詳細設定（初回だけ設定すればOK）</summary>
         <div class="grid" style="margin-top:12px">
-          <div>
-            <label>社会保険の適用</label>
-            <select id="shakaiApply">
-              <option value="法人">法人（健保・厚年 強制適用）</option>
-              <option value="個人任意">個人経営＋任意適用の認可あり（適用）</option>
-              <option value="個人非適用">個人経営（理美容＝非適用業種／健保・厚年なし）</option>
-            </select>
-            <div class="hint">個人経営は原則 国保・国民年金</div>
-          </div>
-          <div><label>月平均所定労働時間</label><input id="shotei" type="number" value="160"><div class="hint">残業単価の計算に使用</div></div>
+          <div><label>1か月の平均"働く時間"（残業を除く）</label><input id="shotei" type="number" value="160"><div class="hint">残業単価と最低賃金の判定に使用。例）週40時間×52週÷12＝約173h。週休2日・1日8hなら173目安。分からなければ160のままでOK</div></div>
           <div>
             <label>歩合の対象売上</label>
             <select id="salesBasis"><option value="excl">税抜（税込÷1.1）</option><option value="incl">税込のまま</option></select>
@@ -264,7 +363,8 @@
       <div id="minwageBanner" class="disc" style="margin-top:10px;margin-bottom:0"></div>
     </div>
 
-    <div class="card">
+    <div id="card-comm-note" class="card no-print" style="display:none"><p class="muted" style="margin:0">時給のみのお店では、歩合ルール（率・店販・指名）の設定は不要です。歩合を使う人がいれば上の「お店のタイプ」で<b>社員</b>か<b>面貸し</b>にチェックしてください。</p></div>
+    <div id="card-comm" class="card">
       <h2><span class="n">2</span> 技術売上の歩合ルール</h2>
       <p class="cardsub">ここは「率（歩合ルール）」だけ決めます。売上金額は毎月「② 毎月の入力」でスタッフごとに入れます。</p>
       <div style="margin-bottom:14px">
@@ -331,7 +431,9 @@
 
       <div class="subhead" style="margin-top:16px">固定手当（役職手当・技術手当など）</div>
       <div id="allowRows"></div>
-      <button class="btn ghost sm" onclick="addAllow()">＋ 手当を追加</button>
+      <div class="hint" style="margin:2px 0 6px">よく使う手当（タップで追加・最賃/割増の扱いは自動でセット）</div>
+      <div id="allowPresets" class="btnrow no-print" style="gap:6px;flex-wrap:wrap;margin:0 0 8px"></div>
+      <button class="btn ghost sm" onclick="addAllow()">＋ 手当を追加（自由）</button>
 
       <div class="subhead" style="margin-top:16px">天引き（材料費・研修費など）</div>
       <div id="deductRows"></div>
@@ -361,7 +463,7 @@
       <div id="staffList"></div>
       <div id="staffTable" style="display:none"></div>
       <div class="btnrow">
-        <button class="btn ghost" onclick="addStaff()">＋ スタッフを追加</button>
+        <div id="addStaffBar" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="addStaff()">＋ スタッフを追加</button></div>
         <button class="btn" onclick="calcAll();switchTab('result')">給与内訳を計算する</button>
       </div>
     </div>
@@ -371,7 +473,7 @@
   <section id="result" class="tabpage hidden">
     <div class="card">
       <h2><span class="n">3</span> 給与内訳（額面・社保/税 控除前）</h2>
-      <div id="resultBody"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p></div>
+      <div id="resultBody"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p><button class="btn ghost sm no-print" onclick="switchTab('input')">② 毎月の入力へ →</button></div>
       <div class="btnrow no-print" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
         <button class="btn ghost sm" onclick="exportTransferCSV()" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>振込データCSVを書き出す</button>
         <button class="btn ghost sm" onclick="exportJournalCSV()" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 10h16M10 4v16"/></svg>会計仕訳CSVを書き出す</button>
@@ -394,7 +496,7 @@
         <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer">
           <input type="checkbox" style="width:auto" onchange="pocMode=this.checked;calcAll()"> <b>照合モード</b>（既存の明細と1円突合）</label>
       </div>
-      <div id="payslipBody" style="margin-top:14px"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p></div>
+      <div id="payslipBody" style="margin-top:14px"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p><button class="btn ghost sm no-print" onclick="switchTab('input')">② 毎月の入力へ →</button></div>
     </div>
   </section>
 
@@ -404,7 +506,7 @@
       <h2><span class="n">5</span> 賃金台帳</h2>
       <p class="cardsub">法律で保存が必要な帳簿です。氏名・勤務・賃金・控除をまとめて記録します。そのまま印刷して保管できます。</p>
       <div class="btnrow no-print" style="margin-top:0"><button class="btn navy sm" onclick="window.print()" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M8 15h8v6H8z"/></svg>賃金台帳を印刷 / PDF</button></div>
-      <div id="choboBody" style="margin-top:14px"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p></div>
+      <div id="choboBody" style="margin-top:14px"><p class="muted">「② 毎月の入力」で計算を押すとここに出ます。</p><button class="btn ghost sm no-print" onclick="switchTab('input')">② 毎月の入力へ →</button></div>
     </div>
   </section>
 
@@ -572,8 +674,19 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>switchTab(t.dataset.t
 function switchTab(name){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
   document.querySelectorAll(".tabpage").forEach(p=>p.classList.toggle("hidden",p.id!==name));
+  updateWizard(name);
   if(name==="test") runTests();
   window.scrollTo({top:0,behavior:"smooth"});
+}
+/* 一本道ウィザード：現在のタブに応じて 3 ステップの現在地を光らせる（純UI・計算に無関係） */
+function updateWizard(name){
+  var map={setup:1,input:2,result:3,payslip:3,chobo:3};
+  var cur=map[name]||1;
+  document.querySelectorAll('#wizard .wstep').forEach(function(el){
+    var s=map[el.dataset.step]||1;
+    el.classList.toggle('active', s===cur);
+    el.classList.toggle('done', s<cur);
+  });
 }
 
 /* ---------- dynamic setup rows ---------- */
@@ -591,6 +704,26 @@ function addTenure(v={years:"",rate:""}){
     <div><label>率（%）</label><input class="te-rate" type="number" step="0.5" value="${v.rate}"></div>
     <div style="align-self:end"><button class="del" onclick="this.closest('.tenure-row').remove()">× 削除</button></div>`;
   $("tenureRows").appendChild(d);
+}
+/* よく使う手当プリセット。最賃算入(最賃則1条)・割増算入(労基則21条)の扱いを正しく既定化＝ユーザーがチェックで迷わない */
+const ALLOW_PRESETS=[
+  {name:"役職手当", minInc:true,  otInc:true,  note:"職務に対する手当＝最賃・割増の基礎に算入（最賃則1条・労基則21条）"},
+  {name:"技術手当", minInc:true,  otInc:true,  note:"技術＝職務関連の手当＝最賃・割増の基礎に算入（最賃則1条・労基則21条）"},
+  {name:"皆勤手当", minInc:false, otInc:true,  note:"最賃の計算からは除外（最賃則1条）。割増の基礎には算入（労基則21条の除外に精皆勤は含まれない）"},
+  {name:"家族手当", minInc:false, otInc:false, note:"一律の家族手当＝最賃・割増とも基礎から除外（最賃則1条・労基則21条）"},
+  {name:"住宅手当", minInc:false, otInc:false, note:"一律の住宅手当＝割増の基礎から除外（労基則21条）。最賃も除外"},
+  {name:"前払退職金", minInc:false, otInc:false, note:"退職金の前払（課税支給）。労働時間に紐づかない＝最賃・割増の基礎から除外"},
+];
+function renderAllowPresets(){
+  const box=$("allowPresets"); if(!box) return;
+  box.innerHTML=ALLOW_PRESETS.map((p,i)=>{
+    const inc=`最賃${p.minInc?"算入":"除外"}・割増${p.otInc?"算入":"除外"}`;
+    return `<button type="button" class="btn ghost sm preset-btn" onclick="addAllowPreset(${i})" title="${p.note}｜${inc}">＋ ${p.name}<span class="preset-i" aria-hidden="true">?</span></button>`;
+  }).join("");
+}
+function addAllowPreset(i){
+  const p=ALLOW_PRESETS[i]; if(!p) return;
+  addAllow({name:p.name, amount:"", minInc:p.minInc, otInc:p.otInc});
 }
 function addAllow(v={name:"",amount:"",minInc:true,otInc:true}){
   const d=document.createElement("div"); d.className="grid allow-row"; d.style.marginBottom="8px";
@@ -701,7 +834,16 @@ function techComm(cfg, s, techBase){
 }
 // staff: {name, techIncl, retailIncl, nomCount, nomIncl, tenureYears, workedHours, overtimeHours}
 function calcStaff(cfg, s){
-  const base=(s.contract==="業務委託")?0:((s.base===""||s.base==null)?cfg.baseSalary:num(s.base)); // 基本給/手当はスタッフ個別（未設定は店の既定）。業務委託は基本給なし＝報酬のみ
+  // 給与形態：時給制（アシスタント等）は 時給×所定内労働時間 を基本給とする。月給・業務委託は従来通り。
+  const isHourly=(s.contract!=="業務委託" && s.wageType==="hourly" && (num(s.hourlyWage)||0)>0);
+  // 所定内は「バケツ入力」＝ユーザーが直接入力（減算しない＝法定休日の含め忘れによる過少払いを構造的に排除）。
+  // 時間外は1.25／法定休日は1.35で別途支払うため基礎(100%)は所定内のみ。深夜は「うち」で+0.25加算（100%は基礎に残す）。
+  const normalHours=isHourly?Math.max(0,num(s.normalHours)||0):0;
+  // 最賃・歩合の時間単価の分母＝総労働時間＝所定内＋時間外＋法定休日（深夜は「うち」なので加算しない）
+  const workedTotal=isHourly?(normalHours+(num(s.overtimeHours)||0)+(num(s.holidayHours)||0)):(num(s.workedHours)||0);
+  const base=(s.contract==="業務委託")?0
+    : isHourly ? Math.round((num(s.hourlyWage)||0)*normalHours)
+    : ((s.base===""||s.base==null)?cfg.baseSalary:num(s.base)); // 基本給/手当はスタッフ個別（未設定は店の既定）。業務委託は基本給なし＝報酬のみ
   const techBase=toBase(cfg, s.techIncl);
   const retailBase=toBase(cfg, s.retailIncl);
   // 技術歩合率：スタッフ個別の上書きがあれば優先（歩合なし＝0を明示可）。無ければ店の共通ルール
@@ -740,13 +882,13 @@ function calcStaff(cfg, s){
   const shotei=cfg.shotei>0?cfg.shotei:160;
   const commTotal=techCommission+retailCommission+catCommission+nomPay;        // 歩合総額
   const otIncAllow=cfg.allowances.reduce((a,x)=>a+(x.otInc!==false?x.amount:0),0); // 割増算入の手当(労基則21条)
-  const fixedBaseForOT=base+otIncAllow+guaranteeTopUp;// 割増基礎(固定・労基則21条の除外手当は外す)
+  const fixedBaseForOT=(isHourly?(num(s.hourlyWage)||0)*shotei:base)+otIncAllow+guaranteeTopUp;// 割増基礎(固定・労基則21条の除外手当は外す)。時給制は時給×所定→時間単価fuが時給に一致(労基則19条)
   let overtimePay=0, otFixed=0, otComm=0, otAbsorb=0, otSeparate=0;
   if(s.contract!=="業務委託"){
     const otH=s.overtimeHours||0, ngH=s.nightHours||0, hdH=s.holidayHours||0;
     const over60=Math.max(0, otH-60);                 // 月60時間超は1.5倍（＋0.25）
     const fu=fixedBaseForOT/shotei;                   // 固定給の時間単価
-    const cu=s.workedHours>0?commTotal/s.workedHours:0; // 歩合の時間単価
+    const cu=workedTotal>0?commTotal/workedTotal:0; // 歩合の時間単価
     // 時間外(1.25)＋月60h超(0.25)＝固定残業代で充当可能／深夜(0.25)・法定休日(1.35/0.35)＝常に別建て全額（労基37条4項・35条）
     otAbsorb=Math.round(fu*(1.25*otH+0.25*over60) + cu*(0.25*otH+0.25*over60));
     otSeparate=Math.round(fu*(0.25*ngH+1.35*hdH) + cu*(0.25*ngH+0.35*hdH));
@@ -763,12 +905,16 @@ function calcStaff(cfg, s){
 
   // guardrails（労基系は雇用のみ。業務委託は最賃・割増・全額払いの対象外）
   const flags=[];
+  // 時給制の入力整合：総労働時間に時間外・法定休日を含める前提。合計が総労働時間を超えたら誤入力（所定内マイナス＝過少払い方向）
+  if(isHourly){
+    flags.push({lv:"ok",t:`時給制：所定内 ${normalHours}h × ${yen(num(s.hourlyWage)||0)}＝基本給 ${yen(base)}。時間外${num(s.overtimeHours)||0}h・法定休日${num(s.holidayHours)||0}h・深夜${num(s.nightHours)||0}hは別途割増（総労働 ${workedTotal}h）`});
+  }
   // 最賃＝時間額換算（最賃則2条）：固定給は月所定で除、歩合は総労働時間で除。時間外・割増・通勤/家族/精皆勤は除外
   // 就業地（複数店舗）別の地域別最賃に対応：スタッフに就業地があればその都道府県の最賃を使う
   const staffMin=(s.workPref&&MINWAGE[s.workPref])?MINWAGE[s.workPref][0]:cfg.minWage;
-  const fixedForMin=base+minIncAllow+guaranteeTopUp;
-  if(s.contract!=="業務委託" && s.workedHours>0){
-    const hourly=fixedForMin/shotei + commTotal/s.workedHours;
+  const fixedForMin=(isHourly?(num(s.hourlyWage)||0)*shotei:base)+minIncAllow+guaranteeTopUp;
+  if(s.contract!=="業務委託" && workedTotal>0){
+    const hourly=fixedForMin/shotei + commTotal/workedTotal;
     const where=s.workPref?`就業地${s.workPref} `:"";
     if(hourly<staffMin) flags.push({lv:"bad",t:`最低賃金を下回る可能性：時間額 ${Math.round(hourly)}円 < ${where}最低賃金 ${staffMin}円。ご確認ください`});
     else flags.push({lv:"ok",t:`最低賃金OK（時間額 ${Math.round(hourly)}円 ≥ ${where}${staffMin}円）`});
@@ -782,7 +928,7 @@ function calcStaff(cfg, s){
 
   return {name:s.name, base, rate, techBase, retailBase, techCommission, retailCommission, catCommission, catDetail, nomPay, commAmount,
     freeComm, freeRate, nomBase, nomComm, nomRate,
-    allowTotal:(s.contract==="業務委託"?0:allowTotal), commute:(s.contract==="業務委託"?0:commute), guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, flags};
+    allowTotal:(s.contract==="業務委託"?0:allowTotal), commute:(s.contract==="業務委託"?0:commute), guaranteeTopUp, overtimePay, fixedOT, otToGross, deductTotal, gross, afterDeduct, wageForMinWage, isHourly, normalHours, workedTotal, flags};
 }
 
 /* ---------- staff input UI ---------- */
@@ -790,10 +936,72 @@ let staff=[];
 let pocMode=false;
 let payslipMode='staff'; // 'staff'=配布用（渡す）／'owner'=管理用（確認事項つき）
 function setPayslipMode(m){ payslipMode=m; const a=$('mode-staff'),b=$('mode-owner'); if(a)a.classList.toggle('active',m==='staff'); if(b)b.classList.toggle('active',m==='owner'); calcAll(); }
-function addStaff(v){
-  staff.push(v||{name:"スタッフ"+(staff.length+1), techIncl:0, retailIncl:0, nomCount:0, nomIncl:0, commAmount:0, tenureYears:0, workedHours:160, overtimeHours:0,
-    contract:"雇用", gender:"", workPref:"", workDays:22, commute:0, commuteMode:"公共", commuteKm:0, nightHours:0, holidayHours:0, fixedOT:0, genkyu:0, bonus:0, bonusPrev:0, bonusRate:0, stdReward:260000, birth:"", hireDate:"", retireDate:"", age40:false, koyoIns:true, sanpq:false, shakai:true, taxCol:"甲", spouse:false, deps:0, taxAdd:0, jutec:0, jumin:0});
+function addStaff(v, role){
+  let n=v;
+  if(!n){
+    n={name:"スタッフ"+(staff.length+1), techIncl:0, retailIncl:0, nomCount:0, nomIncl:0, commAmount:0, tenureYears:0, workedHours:160, overtimeHours:0, normalHours:160,
+      contract:"雇用", gender:"", workPref:"", workDays:22, commute:0, commuteMode:"公共", commuteKm:0, nightHours:0, holidayHours:0, fixedOT:0, genkyu:0, bonus:0, bonusPrev:0, bonusRate:0, stdReward:260000, birth:"", hireDate:"", retireDate:"", age40:false, koyoIns:true, sanpq:false, shakai:true, taxCol:"甲", spouse:false, deps:0, taxAdd:0, jutec:0, jumin:0};
+    // お店のタイプ／追加ボタンで選んだ役割を初期セット（＝追加直後から要る欄だけ・入力の初手を減らす）
+    if(role==="freelance"){ n.contract="業務委託"; }
+    else if(role==="assist"){ n.wageType="hourly"; }
+    else if(role==="staff"){ n.wageType="monthly"; }
+  }
+  staff.push(n);
   renderInput();
+}
+/* お店のタイプに応じて追加ボタンを出し分け（該当タイプが1つなら1ボタン・複数なら役割別ボタン） */
+function renderAddStaffBar(){
+  const bar=$('addStaffBar'); if(!bar) return;
+  const chk=id=>$(id)&&$(id).checked;
+  const types=[]; if(chk('stType_staff'))types.push('staff'); if(chk('stType_assist'))types.push('assist'); if(chk('stType_free'))types.push('freelance');
+  const LBL={staff:'社員',assist:'アシ（時給）',freelance:'面貸し'};
+  if(types.length<=1){ const r=types[0]||null; bar.innerHTML=`<button class="btn ghost" onclick="addStaff(null,${r?`'${r}'`:'null'})">＋ スタッフを追加</button>`; }
+  else { bar.innerHTML=types.map(r=>`<button class="btn ghost" onclick="addStaff(null,'${r}')">＋ ${LBL[r]}を追加</button>`).join(''); }
+}
+/* 役割プロファイル：サロンが「この人のタイプ」を1つ選ぶと、要る欄だけ出る。裏でcontract/wageTypeをセットするだけ＝エンジンは不変 */
+const ROLE_OPTS=[["staff","社員（月給＋歩合）"],["assist","アシスタント（時給）"],["freelance","面貸し・業務委託"]];
+function roleOf(s){ if(s.contract==="業務委託") return "freelance"; return (s.wageType==="hourly")?"assist":"staff"; }
+function setRole(i,role){ const s=staff[i];
+  if(role==="freelance"){ s.contract="業務委託"; }
+  else { s.contract="雇用"; s.wageType=(role==="assist")?"hourly":"monthly"; }
+  renderStaff(); calcAll(); if(window.__loaded)saveState();
+}
+/* お店のタイプで設定を段階開示（表示制御のみ・エンジン不変）。歩合を使う人がいなければ歩合ルールを畳み、雇用がいなければ社保欄を隠す */
+function applyShopType(){
+  const chk=id=>$(id)&&$(id).checked;
+  const st=chk('stType_staff'), as=chk('stType_assist'), fr=chk('stType_free');
+  const usesComm=st||fr, hasEmp=st||as;
+  const show=(id,on)=>{const e=$(id); if(e) e.style.display=on?'':'none';};
+  show('card-comm', usesComm); show('card-comm-note', !usesComm);
+  show('salesExtraBox', usesComm); show('shakaiField', hasEmp);
+  renderAddStaffBar();
+  if(window.__loaded) saveState();
+}
+/* 初回かんたん設定ウィザード：4問の答えで設定を代わりに埋める（表示制御＋初期値のみ・計算エンジンには触れない） */
+let wizAns={keitai:'法人',who:['staff'],pay:'sales',base:'fixed'};
+function wizSelect(el){
+  const q=el.closest('.wiz-q'); const key=q.dataset.q; const v=el.dataset.v;
+  if(q.dataset.multi){ el.classList.toggle('sel'); wizAns[key]=[...q.querySelectorAll('.wiz-opt.sel')].map(x=>x.dataset.v); }
+  else { q.querySelectorAll('.wiz-opt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); wizAns[key]=v; }
+}
+function openWizard(){
+  const ov=$('setupWizard'); if(!ov) return;
+  ov.querySelectorAll('.wiz-q').forEach(q=>{ const val=wizAns[q.dataset.q];
+    q.querySelectorAll('.wiz-opt').forEach(o=>o.classList.toggle('sel', Array.isArray(val)?val.includes(o.dataset.v):o.dataset.v===val)); });
+  ov.classList.add('on');
+}
+function closeWizard(markDone){ const ov=$('setupWizard'); if(ov) ov.classList.remove('on'); if(markDone){ try{ localStorage.setItem('salonWizardDone','1'); }catch(e){} } }
+function applyWizard(){
+  const a=wizAns; const who=Array.isArray(a.who)?a.who:(a.who?[a.who]:[]);
+  if($('shakaiApply')) $('shakaiApply').value=a.keitai;                 // Q1 形態→社保
+  const sc=(id,on)=>{const e=$(id); if(e) e.checked=on;};
+  sc('stType_staff',who.includes('staff')); sc('stType_assist',who.includes('assist')); sc('stType_free',who.includes('free'));
+  if(!who.length) sc('stType_staff',true);                             // 未選択は社員に寄せる
+  if($('payMode')){ $('payMode').value=a.pay; if($('payMode').onchange) $('payMode').onchange(); } // Q3
+  if($('baseSalary')) $('baseSalary').value=(a.base==='fixed')?'180000':'0';                        // Q4
+  if(a.base==='full' && $('guarantee') && !num($('guarantee').value)) $('guarantee').value='250000';
+  applyShopType(); if(window.__loaded){ calcAll(); saveState(); }
+  closeWizard(true); switchTab('setup'); window.scrollTo(0,0);
 }
 function renderStaff(){
   const cfg=getConfig();
@@ -803,7 +1011,12 @@ function renderStaff(){
     let html=`<div class="top"><strong><span class="av">${i+1}</span>${s.name||"スタッフ"+(i+1)}</strong><button class="del" onclick="rmStaff(${i})">× 削除</button></div><div class="grid">`;
     html+=`<div><label>氏名</label><input value="${s.name}" oninput="upd(${i},'name',this.value)"></div>`;
     const gyomu=(s.contract==="業務委託");
-    html+=`<div><label>雇用形態</label><select onchange="upd(${i},'contract',this.value);renderStaff()"><option value="雇用"${!gyomu?" selected":""}>雇用（社員・アルバイト）</option><option value="業務委託"${gyomu?" selected":""}>業務委託（面貸し・シェアサロン）</option></select><div class="hint">${gyomu?"報酬＝売上×歩合−材料費等。社保・源泉・最賃は対象外":"社保・源泉・最賃あり"}</div></div>`;
+    const role=roleOf(s);
+    html+=`<div style="grid-column:1/-1"><label>役割（この人のタイプ）</label><select onchange="setRole(${i},this.value)">${ROLE_OPTS.map(o=>`<option value="${o[0]}"${role===o[0]?" selected":""}>${o[1]}</option>`).join("")}</select><div class="hint">${role==="freelance"?"報酬＝売上×歩合−材料費等。社保・源泉・最賃は対象外":role==="assist"?"時給×所定内＝基本給。残業は時給ベースで自動割増（歩合が無ければ売上欄は出ません）":"固定給＋歩合。社保・源泉・最賃あり"}</div></div>`;
+    // アシスタントは既定で歩合欄を隠す（歩合がある人だけトグルで出す）＝入力の出しわけ
+    const showComm=(role!=="assist")||!!s.assistHasComm;
+    if(role==="assist") html+=`<div style="grid-column:1/-1;align-self:end"><label style="display:inline">この人も歩合あり（指名・店販など）</label> <input type="checkbox" style="width:auto" ${s.assistHasComm?"checked":""} onchange="upd(${i},'assistHasComm',this.checked);renderStaff();calcAll()"></div>`;
+    if(showComm){
     if(cfg.payMode==="amount"){
       html+=`<div class="subhead group">歩合</div>`;
       html+=`<div><label>歩合給（円）</label><input type="number" value="${s.commAmount||''}" oninput="upd(${i},'commAmount',this.value)"><div class="hint">サロンで決めた今月の歩合額を入力（社保・税・明細は自動）</div></div>`;
@@ -818,10 +1031,17 @@ function renderStaff(){
     if(cfg.nomModel==="rate"||cfg.nomModel==="split") html+=`<div><label>指名売上（税込・円）</label><input type="number" value="${s.nomIncl}" oninput="upd(${i},'nomIncl',this.value)">${cfg.nomModel==="split"?`<div class="hint">指名売上（税抜）× ${num(cfg.nomValue)}%</div>`:''}</div>`;
     if(cfg.techModel==="tenure") html+=`<div><label>勤続年数</label><input type="number" value="${s.tenureYears}" oninput="upd(${i},'tenureYears',this.value)"></div>`;
     }
+    }
     if(!gyomu){
     html+=`<div class="subhead group">勤怠</div>`;
+    const hourlyOn=(s.wageType==="hourly");
+    if(hourlyOn){
+      const _normal=Math.max(0,num(s.normalHours)||0);
+      html+=`<div><label>時給（円）</label><input type="number" value="${s.hourlyWage||''}" oninput="upd(${i},'hourlyWage',this.value);calcAll()"><div class="hint">基本給＝時給×所定内（自動）＝<b>${yen(Math.round((num(s.hourlyWage)||0)*_normal))}</b></div></div>`;
+      html+=`<div><label>所定内労働時間（h/月・残業を除く）</label><input type="number" value="${s.normalHours||''}" oninput="upd(${i},'normalHours',this.value);calcAll()"><div class="hint">残業・法定休日・深夜は下の「残業・深夜・休日」へ。1日ごとの15分/30分切捨ては不可（1分単位で合算）</div></div>`;
+    }
     html+=`<div><label>勤務日数（日/月）</label><input type="number" value="${s.workDays}" oninput="upd(${i},'workDays',this.value)"></div>`;
-    html+=`<div><label>労働時間（h/月）</label><input type="number" value="${s.workedHours}" oninput="upd(${i},'workedHours',this.value)"></div>`;
+    if(!hourlyOn) html+=`<div><label>労働時間（h/月・総時間）</label><input type="number" value="${s.workedHours}" oninput="upd(${i},'workedHours',this.value)"><div class="hint">　</div></div>`;
     const hasOT=(num(s.overtimeHours)||num(s.nightHours)||num(s.holidayHours)||num(s.fixedOT));
     html+=`<details class="adv" style="grid-column:1/-1;margin-top:2px"${hasOT?" open":""}><summary>残業・深夜・休日（あれば入力）</summary><div class="grid" style="margin-top:8px">`;
     html+=`<div><label>うち時間外（h）</label><input type="number" value="${s.overtimeHours}" oninput="upd(${i},'overtimeHours',this.value)"></div>`;
@@ -837,13 +1057,14 @@ function renderStaff(){
     html+=cardTotalPanel(i,gyomu);
     const stdOpts=STD_GRADES.map(([std,low],gi)=>{const hi=(gi<STD_GRADES.length-1?STD_GRADES[gi+1][1]:null);const range=hi?`${(low||0).toLocaleString()}〜${hi.toLocaleString()}`:`${low.toLocaleString()}〜`;return `<option value="${std}"${s.stdReward===std?" selected":""}>${std.toLocaleString()}円（報酬月額 ${range}）</option>`;}).join("");
     if(gyomu){
-      html+=`</div><div class="rowbox" style="margin-top:2px;font-size:12px;color:var(--sub)">業務委託は<b>報酬（売上×歩合−材料費・場所代）</b>のみ計算します（社会保険・源泉・最低賃金は対象外）。<br><span class="flag warn" style="margin-top:6px">実態が雇用の場合は業務委託にできません。契約内容をご確認ください。</span></div>`;
+      html+=`<details class="adv" style="grid-column:1/-1"${num(s.geinouReward)>0?" open":""}><summary>撮影・芸能のヘアメイク報酬がある場合（源泉徴収）</summary><div style="margin-top:8px"><label>撮影・芸能の美粧（ヘアメイク）報酬額（源泉対象・税込・円）</label><input type="number" value="${s.geinouReward||''}" oninput="upd(${i},'geinouReward',this.value);calcAll()" placeholder="0（通常の面貸し・技術報酬は空欄）"><div class="hint">通常の面貸し・技術報酬は<b>源泉の対象外</b>＝入力不要。映画・演劇・TV等の美粧報酬（204条1項5号）だけ、その<b>税込報酬額</b>を入力→10.21%（100万超は20.42%）を源泉控除。店販・指名は含めない</div></div></details>`;
+      html+=`</div><div class="rowbox" style="margin-top:2px;font-size:12px;color:var(--sub)">業務委託は<b>報酬（売上×歩合−材料費・場所代）</b>のみ計算します（社会保険・最低賃金は対象外）。技術報酬は<b>源泉徴収も原則対象外</b>（撮影・芸能のヘアメイク報酬のみ上のチェックで源泉10.21%）。<br><span class="flag warn" style="margin-top:6px">実態が雇用の場合は業務委託にできません。契約内容をご確認ください。</span></div>`;
       c.innerHTML=html; wrap.appendChild(c); return;
     }
     html+=`</div><details class="adv"><summary>社保・税・台帳・個別設定（初回に設定・毎月はそのままでOK）</summary><div class="grid">`;
     html+=`<div class="subhead group" style="grid-column:1/-1">この人の個別設定（役職で手当・歩合を変える）</div>`;
     html+=`<div><label>役職（表示用）</label><input value="${s.role||''}" oninput="upd(${i},'role',this.value)" placeholder="例：スタイリスト"></div>`;
-    html+=`<div><label>基本給／手当（個別・円）</label><input value="${s.base||''}" oninput="upd(${i},'base',this.value)" placeholder="空欄=店の既定 ${(cfg.baseSalary||0).toLocaleString()}"><div class="hint">社長=手当のみ／アシ=手当+歩合 等</div></div>`;
+    html+=`<div><label>基本給／手当（個別・円）</label><input value="${s.base||''}" ${s.wageType==="hourly"?"disabled style=\"opacity:.5\"":""} oninput="upd(${i},'base',this.value)" placeholder="空欄=店の既定 ${(cfg.baseSalary||0).toLocaleString()}"><div class="hint">${s.wageType==="hourly"?"時給制のため未使用（基本給＝時給×所定内で自動）":"社長=手当のみ／アシ=手当+歩合 等"}</div></div>`;
     html+=`<div><label>技術歩合率（個別・%）</label><input value="${s.techRateOwn||''}" oninput="upd(${i},'techRateOwn',this.value)" placeholder="空欄=店ルール"><div class="hint">この人だけ率を変える。0＝歩合なし（社長等）</div></div>`;
     html+=`<div><label>性別（賃金台帳用）</label><select onchange="upd(${i},'gender',this.value)"><option value=""${!s.gender?" selected":""}>—</option><option value="男"${s.gender==="男"?" selected":""}>男</option><option value="女"${s.gender==="女"?" selected":""}>女</option><option value="その他"${s.gender==="その他"?" selected":""}>その他</option></select></div>`;
     html+=`<div><label>就業地（複数店舗の最賃用）</label><select onchange="upd(${i},'workPref',this.value)"><option value=""${!s.workPref?" selected":""}>サロンと同じ</option>${Object.keys(MINWAGE).map(p=>`<option value="${p}"${s.workPref===p?" selected":""}>${p}（${MINWAGE[p][0]}円）</option>`).join("")}</select><div class="hint">別店舗で就業する人だけ設定（最賃はその就業地基準）</div></div>`;
@@ -907,24 +1128,32 @@ function syncTotals(){
     set('cardother-'+i, ded(n.otherDeduct+(n.genkyu||0)));
     set('rowtot-'+i, yen(r.gross));
     set('rownet-'+i, yen(n.net));
-    const hasSales=num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.nomCount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0));
+    const hasSales=num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.nomCount)||num(s.commAmount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0))||(s.wageType==="hourly"&&num(s.normalHours)>0);
     if(hasSales) filled++;
   });
   const setS=(id,v)=>{const e=$(id); if(e)e.textContent=v;};
   setS('sumCount', staff.length+'人'); setS('sumGross', yen(tGross)); setS('sumNet', yen(tNet));
-  const un=staff.length-filled; setS('sumUnfilled', un===0?'なし ✓':un+'件');
-  const uEl=$('sumUnfilled'); if(uEl) uEl.classList.toggle('ok', un===0);
+  const un=staff.length-filled; setS('sumUnfilled', un===0?'なし ✓':un+'件（クリックで移動）');
+  const uEl=$('sumUnfilled'); if(uEl){ uEl.classList.toggle('ok', un===0); uEl.style.cursor=un>0?'pointer':''; uEl.style.textDecoration=un>0?'underline':''; uEl.onclick=un>0?jumpToUnfilled:null; }
   const g=$('tabtot'), gn=$('tabnet'); if(g)g.textContent=yen(tGross); if(gn)gn.textContent=yen(tNet);
 }
 function upd(i,k,v){
-  if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref"||k==="bankName"||k==="branchName"||k==="acctType"||k==="acctNo"||k==="acctKana"||k==="role"||k==="base"||k==="techRateOwn") staff[i][k]=v;
-  else if(k==="age40"||k==="spouse"||k==="shakai"||k==="koyoIns"||k==="sanpq"||k==="stdAuto") staff[i][k]=!!v;
+  if(k==="name"||k==="taxCol"||k==="birth"||k==="contract"||k==="retireDate"||k==="hireDate"||k==="commuteMode"||k==="gender"||k==="workPref"||k==="bankName"||k==="branchName"||k==="acctType"||k==="acctNo"||k==="acctKana"||k==="role"||k==="base"||k==="techRateOwn"||k==="wageType") staff[i][k]=v;
+  else if(k==="age40"||k==="spouse"||k==="shakai"||k==="koyoIns"||k==="sanpq"||k==="stdAuto"||k==="gyomuGensen"||k==="assistHasComm") staff[i][k]=!!v;
   else staff[i][k]=num(v);
   if(k==="birth") renderStaff(); // 年齢バッジ・介護手動チェックの表示更新
   syncTotals();
   if(window.__loaded)saveState();
 }
 function rmStaff(i){ staff.splice(i,1); renderInput(); }
+/* 未入力の最初のスタッフへジャンプ＋一時ハイライト（検知≠防止＝気づける だけでなく その場で直せる） */
+function jumpToUnfilled(){
+  const has=s=>num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.nomCount)||num(s.commAmount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0))||(s.wageType==="hourly"&&num(s.normalHours)>0);
+  let idx=-1; for(let i=0;i<staff.length;i++){ if(!has(staff[i])){ idx=i; break; } }
+  if(idx<0) return;
+  switchTab('input'); if(inputMode!=='card') setInputMode('card');
+  setTimeout(()=>{ const c=document.querySelectorAll('.staff-card')[idx]; if(c){ c.scrollIntoView({behavior:'smooth',block:'center'}); c.style.transition='box-shadow .3s'; c.style.boxShadow='0 0 0 3px var(--gold)'; setTimeout(()=>{c.style.boxShadow='';},1600); } },60);
+}
 /* 入力の見せ方：カード式（1人ずつ）／一覧式（表で全員）。オーナーが選ぶ */
 let inputMode='card';
 function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); syncTotals(); }
@@ -941,15 +1170,18 @@ function renderStaffTable(){
     cats.forEach(c=>h+=`<th>${c.name}</th>`);
     if(cfg.nomModel==='perCount') h+=`<th>指名件数</th>`; else if(cfg.nomModel==='rate'||cfg.nomModel==='split') h+=`<th>指名売上</th>`; }
   h+=`<th>勤務日</th><th>労働h</th><th>通勤</th><th>総支給</th><th>手取り</th><th></th></tr></thead><tbody>`;
-  staff.forEach((s,i)=>{ const gy=(s.contract==='業務委託'); const r=calcStaff(cfg,s);
-    h+=`<tr><td><input value="${s.name||''}" oninput="upd(${i},'name',this.value)" style="width:92px;padding:6px 8px"></td>`;
-    if(amt){ h+=`<td>${inp(i,'commAmount',s.commAmount)}</td>`; }
+  const salesCols=amt?1:(2+cats.length+(cfg.nomModel!=='none'?1:0)); // 売上系の列数（時給行のまとめ表示用）
+  staff.forEach((s,i)=>{ const gy=(s.contract==='業務委託'); const hr=(!gy && s.wageType==='hourly'); const r=calcStaff(cfg,s);
+    h+=`<tr><td><input value="${s.name||''}" oninput="upd(${i},'name',this.value)" style="width:92px;padding:6px 8px">${hr?'<div class="muted" style="font-size:10px">時給→カード式で入力</div>':''}</td>`;
+    if(hr){ // 時給アシスタントは時給・所定内がこの表に無いため、カード式へ誘導（無言のゼロ計算を防ぐ）
+      h+=`<td colspan="${salesCols}" class="muted" style="text-align:center;font-size:11.5px">時給・所定内は「カード式」で入力（基本給＝時給×所定内）</td>`;
+    } else if(amt){ h+=`<td>${inp(i,'commAmount',s.commAmount)}</td>`; }
     else {
     h+=`<td>${inp(i,'techIncl',s.techIncl)}</td><td>${inp(i,'retailIncl',s.retailIncl)}</td>`;
     cats.forEach((c,ci)=>h+=`<td><input type="number" value="${(s.catSales&&s.catSales[c.name])||''}" oninput="updCat(${i},${ci},this.value);refreshRowTotal(${i})" style="width:100px;padding:6px 8px;text-align:right"></td>`);
     if(cfg.nomModel==='perCount') h+=`<td>${inp(i,'nomCount',s.nomCount,80)}</td>`; else if(cfg.nomModel==='rate'||cfg.nomModel==='split') h+=`<td>${inp(i,'nomIncl',s.nomIncl)}</td>`;
     }
-    h+=`<td>${gy?'—':inp(i,'workDays',s.workDays,68)}</td><td>${gy?'—':inp(i,'workedHours',s.workedHours,68)}</td><td>${gy?'—':inp(i,'commute',s.commute,88)}</td>`;
+    h+=`<td>${(gy||hr)?'—':inp(i,'workDays',s.workDays,68)}</td><td>${(gy||hr)?'—':inp(i,'workedHours',s.workedHours,68)}</td><td>${gy?'—':inp(i,'commute',s.commute,88)}</td>`;
     h+=`<td style="text-align:right;font-weight:800;color:var(--navy)" id="rowtot-${i}">${yen(r.gross)}</td>`;
     h+=`<td style="text-align:right;font-weight:800;color:var(--gold)" id="rownet-${i}">${yen(payslipNums(cfg,s,r).net)}</td>`;
     h+=`<td><button class="del" onclick="rmStaff(${i})">×</button></td></tr>`;
@@ -1008,6 +1240,7 @@ function calcAll(){
   h+=`<tr style="border-top:2px solid var(--navy);background:var(--bg)">
     <td style="font-weight:800">合計 ${rows.length}名</td><td style="font-weight:800">${yen(T.base)}</td><td style="font-weight:800">${yen(T.tech)}</td><td style="font-weight:800">${yen(T.retail)}</td><td style="font-weight:800">${T.cat>0?yen(T.cat):"—"}</td><td style="font-weight:800">${yen(T.nom)}</td><td style="font-weight:800">${T.guar>0?yen(T.guar):"—"}</td><td style="font-weight:800">${yen(T.allow)}</td><td class="gross" style="font-weight:800">${yen(T.gross)}</td><td style="font-weight:800">${T.deduct>0?"−"+yen(T.deduct):"—"}</td><td style="font-weight:800">${yen(T.after)}</td></tr>`;
   h+=`</tbody></table></div>`;
+  h+=`<div class="btnrow no-print" style="margin-top:14px"><button class="btn" onclick="switchTab('payslip')" style="display:inline-flex;align-items:center;gap:8px">④ 給与明細を見る<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button><button class="btn ghost" onclick="switchTab('chobo')">⑤ 賃金台帳へ</button></div>`;
   h+=`<p class="hint" style="margin-top:12px">※社会保険料を引いた手取りは「④ 給与明細」で確認できます。年末調整はこのツールでは扱いません。</p>`;
   $("resultBody").innerHTML=h;
   renderPayslip(cfg,rows);
@@ -1019,12 +1252,12 @@ function calcAll(){
 function renderChobo(cfg,rows){
   let h=`<div class="scroll"><table><thead><tr>
     <th>氏名</th><th>性別</th><th>雇用形態</th><th>賃金計算期間</th><th>労働日数</th><th>労働時間</th><th>時間外</th><th>深夜</th><th>休日</th>
-    <th>基本給</th><th>歩合給</th><th>手当</th><th>割増</th><th>総支給</th><th>控除計</th><th>差引</th></tr></thead><tbody>`;
+    <th>基本給</th><th>歩合給</th><th>手当</th><th>通勤</th><th>割増</th><th>総支給</th><th>控除計</th><th>差引</th></tr></thead><tbody>`;
   staff.forEach((s,i)=>{
     const r=rows[i]; if(!r) return;
-    const comm=r.techCommission+r.retailCommission+r.nomPay+(r.guaranteeTopUp||0);
+    const comm=r.techCommission+r.retailCommission+(r.catCommission||0)+r.nomPay+(r.guaranteeTopUp||0); // 歩合給＝技術+店販+独自歩合対象+指名+保証補填（賃金台帳の実額整合）
     let deductTotal=r.deductTotal, gross=r.gross;
-    if(s.contract==="業務委託"){ deductTotal=r.deductTotal; gross=r.gross; }
+    if(s.contract==="業務委託"){ deductTotal=r.deductTotal+gyomuWithholding(s, r.gross); gross=r.gross; }
     else {
       const af=s.birth?ageFlagsFor(s.birth,cfg.targetYm):{kaigo:!!s.age40,kosei:true,kenpo:true};
       let sh=calcShakai(effStd(s,r.gross),cfg.prefecture,af,r.gross);
@@ -1036,11 +1269,11 @@ function renderChobo(cfg,rows){
       deductTotal=sh.total+tax+num(s.jumin)+r.deductTotal;
     }
     h+=`<tr><td>${r.name}</td><td>${s.gender||"—"}</td><td>${s.contract||"雇用"}</td><td>${ymPeriod(cfg.targetYm)}</td>
-      <td>${s.workDays||0}日</td><td>${s.workedHours||0}h</td><td>${s.overtimeHours||0}h</td><td>${s.nightHours||0}h</td><td>${s.holidayHours||0}h</td>
-      <td>${yen(cfg.baseSalary)}</td><td>${yen(comm)}</td><td>${yen(r.allowTotal)}</td><td>${yen(r.otToGross||0)}</td>
+      <td>${s.workDays||0}日</td><td>${r.isHourly?r.workedTotal:(s.workedHours||0)}h</td><td>${s.overtimeHours||0}h</td><td>${s.nightHours||0}h</td><td>${s.holidayHours||0}h</td>
+      <td>${yen(r.base)}</td><td>${yen(comm)}</td><td>${yen(r.allowTotal)}</td><td>${r.commute>0?yen(r.commute):"—"}</td><td>${yen(r.otToGross||0)}</td>
       <td class="gross">${yen(gross)}</td><td>${yen(deductTotal)}</td><td class="gross">${yen(gross-deductTotal)}</td></tr>`;
   });
-  h+=`</tbody></table></div><div class="hint" style="margin-top:8px">※法定の保存年限は当分の間3年（原則5年）。時系列の累計・複数月保存は本番SaaSで対応。控除の内訳は「④給与明細」に記載。</div>`;
+  h+=`</tbody></table></div><div class="hint" style="margin-top:8px">※賃金の種類ごとの額（基本給＋歩合給＋手当＋通勤＋割増＝総支給）で整合。労基則54条の記載事項（労働日数・労働時間・時間外/深夜/休日の時間数を含む）に対応。控除の内訳は「④給与明細」に記載。<br>※法定の保存年限は当分の間3年（原則5年）。時系列の累計・複数月保存は本番SaaSで対応。</div>`;
   $("choboBody").innerHTML=h;
 }
 
@@ -1050,7 +1283,8 @@ function renderPayslip(cfg,rows){
   staff.forEach((s,i)=>{
     const r=rows[i]; if(!r) return;
     if(s.contract==="業務委託"){
-      const pay=r.gross-r.deductTotal;
+      const gw=gyomuWithholding(s, r.gross);
+      const pay=r.gross-r.deductTotal-gw;
       h+=`<div class="payslip">
         <div class="ph"><div><div class="doc-title">報酬明細書</div><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div></div>
           <div class="meta">${cfg.salonName}／${cfg.targetYm||""}分<br>業務委託（報酬）</div></div>
@@ -1062,9 +1296,12 @@ function renderPayslip(cfg,rows){
         <tr><td>指名</td><td>${yen(r.nomPay)}</td></tr>
         ${r.allowTotal>0?`<tr><td>手当</td><td>${yen(r.allowTotal)}</td></tr>`:""}
         <tr><td>材料費・場所代 等</td><td>${r.deductTotal>0?"−"+yen(r.deductTotal):"—"}</td></tr>
+        ${gw>0?`<tr><td>源泉徴収税（10.21%）<span class="muted">204条5号</span></td><td>−${yen(gw)}</td></tr>`:""}
         </tbody></table></div>
         <div class="net"><span class="lb">お支払い（報酬）</span><span class="v">${yen(pay)}</span></div>
-        <span class="flag warn">業務委託は社保・源泉・最低賃金の対象外です。実態が雇用の場合は業務委託にできません。</span>
+        ${gw>0
+          ? `<span class="flag warn">撮影・芸能のヘアメイク報酬として源泉徴収10.21%（所得税法204条1項5号）を控除しています。通常の面貸し・技術報酬は源泉の対象外です。</span>`
+          : `<span class="flag warn">業務委託は社保・最低賃金の対象外です。技術報酬は源泉徴収も原則対象外（撮影・芸能のヘアメイク報酬のみ例外）。実態が雇用の場合は業務委託にできません。</span>`}
         </div>`;
       return;
     }
@@ -1103,7 +1340,7 @@ function renderPayslip(cfg,rows){
     h+=`<div class="payslip">
       <div class="ph"><div><div class="doc-title">給与明細書</div><div class="who">${r.name} <span style="font-size:12px;font-weight:600;color:var(--sub)">様</span></div></div>
         <div class="meta">${cfg.salonName}<br>対象期間 ${ymPeriod(cfg.targetYm)}${cfg.payDate?`／支給日 ${cfg.payDate}`:""}<br>${cfg.prefecture}・標準報酬 ${yen(sh.healthStd)}</div></div>
-      <div style="font-size:11.5px;color:var(--sub);margin-bottom:10px">勤怠：勤務 ${s.workDays||0}日／労働 ${s.workedHours||0}時間（うち時間外 ${s.overtimeHours||0}時間）</div>
+      <div style="font-size:11.5px;color:var(--sub);margin-bottom:10px">勤怠：勤務 ${s.workDays||0}日／労働 ${r.isHourly?r.workedTotal:(s.workedHours||0)}時間（うち時間外 ${s.overtimeHours||0}時間${r.isHourly?`・所定内 ${r.normalHours}時間`:''}）</div>
       <div class="scroll"><table><tbody>
       <tr><th style="text-align:left">支給</th><th></th><th style="text-align:left">控除</th><th></th></tr>
       <tr><td>基本給</td><td>${yen(r.base)}</td><td>健康保険料</td><td>${yen(sh.health)}</td></tr>
@@ -1123,7 +1360,7 @@ function renderPayslip(cfg,rows){
       ${genkyu>0?`<tr><td></td><td></td><td>減給の制裁</td><td>−${yen(genkyu)}</td></tr>`:""}
       ${s.shakai===false?`<tr><td colspan="4"><span class="flag warn">この月は社保徴収なし（資格喪失月）に設定中</span></td></tr>`:""}
       <tr style="border-top:2px solid var(--line)"><td><b>総支給（額面）</b></td><td class="gross">${yen(r.gross)}</td><td><b>控除合計</b></td><td><b>−${yen(deductTotal)}</b></td></tr>
-      <tr><td class="muted" style="font-size:11px" colspan="2">うち課税支給 ${yen(r.gross-(r.commute||0))}／非課税(通勤) ${yen(r.commute||0)}</td><td></td><td></td></tr>
+      ${payslipMode!=='staff'?`<tr class="split-row"><td colspan="2" style="padding-top:6px"><span class="split-k">課税支給計</span> <b>${yen(r.gross-commuteNontax)}</b> <span class="muted" style="font-size:11px">＋ 非課税支給計（通勤） ${yen(commuteNontax)}${commuteTaxable>0?`（限度超 ${yen(commuteTaxable)} は課税へ算入済）`:""}</span></td><td class="muted" style="font-size:11px">源泉の課税対象額</td><td class="muted" style="font-size:11px">${yen(A)}</td></tr>`:''}
       </tbody></table></div>
       ${basisHtml}
       <div class="takebar" title="総支給に占める手取りと控除">
@@ -1142,6 +1379,17 @@ function renderPayslip(cfg,rows){
       <tr style="border-top:2px solid var(--line)"><td><b>賞与 差引支給額</b></td><td class="gross">${yen(bo.net)}</td></tr>
       </tbody></table></div><div class="hint">賞与の社保・源泉とも自動計算</div></div>`;
     if(payslipMode!=='staff'){
+    // この明細で"何を前提に計算したか"を平易語で常時可視化（オーナーが黙って間違えるのを防ぐ・検知≠防止）
+    (function(){
+      const chk=[];
+      const shk=cfg.shakaiApply;
+      chk.push(shk==="法人"?"健康保険・厚生年金を<b>引く</b>設定です（法人・会社）":shk==="個人非適用"?"健康保険・厚生年金は<b>引きません</b>（個人のお店／国保・国民年金は本人）":"社会保険に<b>加入</b>の設定です（個人＋任意適用）");
+      if(s.taxCol==="甲"){ const dn=(num(s.deps)||0)+(s.spouse?1:0); chk.push(`所得税は<b>扶養 ${dn}人</b>で計算${dn===0?"（扶養家族がいる方は『詳細』で人数を入れてください）":""}`); }
+      else chk.push(`所得税は手入力（${s.taxCol==="乙"?"扶養控除等申告書の提出なし＝乙":"日雇＝丙"}）`);
+      const minOK=r.flags.find(f=>/最低賃金OK/.test(f.t)); const minNG=r.flags.find(f=>/最低賃金を下回る/.test(f.t));
+      if(minOK) chk.push("最低賃金は<b>クリア</b>"); else if(minNG) chk.push("<b>最低賃金を下回る可能性</b>あり（要確認）");
+      h+=`<div class="rowbox" style="margin-top:10px;background:var(--gold-soft);border-color:#ecdcae"><div class="subhead" style="margin-top:0">この明細の前提（ご確認ください）</div><ul style="margin:4px 0 0;padding-left:18px;font-size:12.5px;line-height:1.9">${chk.map(c=>`<li>${c}</li>`).join("")}</ul></div>`;
+    })();
     r.flags.forEach(f=>h+=`<span class="flag ${f.lv}">${f.t}</span>`);
     if(net<0) h+=`<span class="flag bad">差引支給額がマイナス（社保・税＞支給）。中途入社の日割り等でも社保は日割りされない点に注意・要確認</span>`;
     if(genkyu>0){ const nichi=s.workDays>0?Math.round(r.gross/s.workDays):0; const kai=Math.floor(nichi/2); const sougaku=Math.floor(r.gross/10);
@@ -1259,6 +1507,15 @@ function runTests(){
   // amount：歩合=150,000（技術/店販/指名の売上は無視）／基本200,000＋手当20,000／総支給=370,000
   cases.push({label:"歩合を金額で直接入力（売上は無視・歩合額をそのまま）",cfg:cfg8,s:s8,
     expect:{techCommission:150000,retailCommission:0,nomPay:0,gross:370000}});
+
+  // Case 9: 時給制×法定休日（135%のみ・二重計上しない）＝社労士パネルP0-1の回帰防止
+  const cfg9={salonName:"T9",taxRate:0.10,salesBasis:"excl",baseSalary:0,guarantee:0,minWage:1000,shotei:160,
+    techModel:"flat",techRate:0,tiers:[],tenure:[],retailRate:0,nomModel:"rate",nomValue:0,allowances:[],deductions:[]};
+  const s9={name:"I",contract:"雇用",wageType:"hourly",hourlyWage:1000,techIncl:0,retailIncl:0,nomCount:0,nomIncl:0,tenureYears:0,
+    normalHours:160,overtimeHours:0,nightHours:0,holidayHours:8};
+  // 所定内=160（直接入力）→ 基本給=1000×160=160,000／法定休日=1.35×8×1000=10,800（235%でない）／総支給=170,800
+  cases.push({label:"時給制 法定休日135%（基礎から除外・二重計上なし）",cfg:cfg9,s:s9,
+    expect:{base:160000,overtimePay:10800,gross:170800}});
 
   // Case 5-7: 社会保険料（協会けんぽ額表と1円照合／東京 令和8）
   const shakaiCases=[
@@ -1395,6 +1652,7 @@ function serializeState(){
     allowances:[...document.querySelectorAll('.allow-row')].map(r=>({name:r.querySelector('.a-name').value,amount:r.querySelector('.a-amt').value,minInc:r.querySelector('.a-min')?r.querySelector('.a-min').checked:true})),
     deductions:[...document.querySelectorAll('.deduct-row')].map(r=>({name:r.querySelector('.d-name').value,amount:r.querySelector('.d-amt').value})),
     saleCats:[...document.querySelectorAll('.salecat-row')].map(r=>({name:r.querySelector('.sc-name').value,rate:r.querySelector('.sc-rate').value})),
+    stType:{staff:!!($('stType_staff')&&$('stType_staff').checked),assist:!!($('stType_assist')&&$('stType_assist').checked),free:!!($('stType_free')&&$('stType_free').checked)},
     staff:staff};
 }
 function saveState(){ try{ localStorage.setItem('salonPayrollV1', JSON.stringify(serializeState())); const el=$('saveMark'); if(el) el.textContent='この端末に保存済み（毎月は数字だけ変えればOK）'; }catch(e){} }
@@ -1410,6 +1668,8 @@ function restoreState(o){
   $('saleCatRows').innerHTML=''; (o.saleCats||[]).forEach(c=>addSaleCat({name:c.name,rate:c.rate}));
   $('techModel').onchange(); $('nomModel').onchange(); if($('payMode'))$('payMode').onchange();
   applyPref();
+  if(o.stType){ const sc=(id,v)=>{const e=$(id); if(e) e.checked=!!v;}; sc('stType_staff',o.stType.staff); sc('stType_assist',o.stType.assist); sc('stType_free',o.stType.free); }
+  applyShopType();
   staff = Array.isArray(o.staff)? o.staff : staff;
   renderStaff();
 }
@@ -1417,6 +1677,17 @@ function clearSaved(){ try{ localStorage.removeItem('salonPayrollV1'); }catch(e)
 function closeOnboard(){ var e=document.getElementById('onboard'); if(e) e.style.display='none'; try{ localStorage.setItem('salonOnboardDone','1'); }catch(_){} }
 function startFresh(){ if(!confirm("サンプル（サンプルサロン・山田・佐藤）を消して、空の状態から始めますか？")) return;
   staff=[]; addStaff(); $("salonName").value=""; $("baseSalary").value="0"; renderStaff(); calcAll(); saveState(); switchTab('setup'); window.scrollTo(0,0); }
+/* 業務委託の源泉徴収（例外＝所得税法204条1項5号：映画・演劇その他芸能又はTV放送に係る美粧の報酬）。
+   通常の面貸し・技術報酬は204条1項の限定列挙に非該当＝源泉なし（国税庁 質疑応答「スタイリスト料及びヘアメイク料」）。
+   フラグ s.gyomuGensen が立った撮影/芸能ヘアメイク報酬のときだけ 10.21%（100万円超部分は20.42%）・円未満切捨。 */
+function gyomuWithholding(s){
+  if(!(s && s.contract==="業務委託")) return 0;
+  // 源泉base＝撮影・芸能の美粧（ヘアメイク）報酬額（税込・ユーザー入力）だけ。店販/指名/消費税は含めない
+  // （204条5号は美粧報酬に限定・源泉は原則税込＝税理士パネルP0-1/P0-2対応）。
+  const g=Math.max(0, Math.round(num(s.geinouReward)||0));
+  if(g<=0) return 0;
+  return (g<=1000000) ? Math.floor(g*0.1021) : Math.floor(1000000*0.1021 + (g-1000000)*0.2042);
+}
 /* ---------- 会計仕訳CSV（給与明細と同じ計算関数で再集計＝数字の出所を一本化） ---------- */
 // renderPayslip(813-831)と同じ計算式。両者は必ず同じ数字になるよう合わせる。
 function payslipNums(cfg,s,r){
@@ -1424,7 +1695,8 @@ function payslipNums(cfg,s,r){
   // 明細表示(yen=Math.round)と完全一致・貸借一致・整数円を保証。社保/税/賞与は既に整数(roundEmp/floor)。
   const gross=Math.round(r.gross), other=Math.round(r.deductTotal);
   if(s.contract==="業務委託"){
-    return {contract:"業務委託",gross,health:0,kaigo:0,pension:0,koyo:0,socialTotal:0,tax:0,jumin:0,genkyu:0,otherDeduct:other,net:gross-other,bonus:null};
+    const gw=gyomuWithholding(s, gross);
+    return {contract:"業務委託",gross,health:0,kaigo:0,pension:0,koyo:0,socialTotal:0,tax:gw,jumin:0,genkyu:0,otherDeduct:other,net:gross-other-gw,bonus:null};
   }
   const af=s.birth?ageFlagsFor(s.birth,cfg.targetYm):{kaigo:!!s.age40,kosei:true,kenpo:true};
   let sh=calcShakai(effStd(s,r.gross),cfg.prefecture,af,r.gross);
@@ -1516,6 +1788,9 @@ addTenure({years:0,rate:30}); addTenure({years:3,rate:35}); addTenure({years:5,r
 addAllow({name:"技術手当",amount:10000});
 addStaff({name:"山田",gender:"男",contract:"雇用",workDays:22,techIncl:1100000,retailIncl:88000,nomCount:0,nomIncl:0,tenureYears:2,workedHours:168,overtimeHours:0,nightHours:0,holidayHours:0,fixedOT:0,genkyu:0,commute:0,commuteMode:"公共",commuteKm:0,stdReward:530000,birth:"",hireDate:"",retireDate:"",age40:false,koyoIns:true,sanpq:false,shakai:true,taxCol:"甲",spouse:false,deps:0,taxAdd:0,jutec:0,jumin:0});
 addStaff({name:"佐藤",gender:"女",contract:"雇用",workDays:21,techIncl:550000,retailIncl:33000,nomCount:0,nomIncl:0,tenureYears:0,workedHours:160,overtimeHours:8,nightHours:0,holidayHours:0,fixedOT:0,genkyu:0,commute:0,commuteMode:"公共",commuteKm:0,stdReward:280000,birth:"",hireDate:"",retireDate:"",age40:false,koyoIns:true,sanpq:false,shakai:true,taxCol:"甲",spouse:false,deps:0,taxAdd:0,jutec:0,jumin:0});
+renderAllowPresets();
+applyShopType();
+updateWizard('setup');
 renderStaff();
 runTests();
 /* 保存済みがあれば復元（＝前月の設定・スタッフを引き継ぐ）→以後は変更のたび自動保存 */
@@ -1530,6 +1805,8 @@ try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ let o=JSON.p
   restoreState(o); saveState();
 } }catch(e){}
 try{ if(localStorage.getItem('salonOnboardDone')){ const o=document.getElementById('onboard'); if(o) o.style.display='none'; } }catch(e){}
+/* 初回（保存も完了フラグも無い＝まっさらな人）だけ、かんたん設定を自動で開く */
+try{ if(!localStorage.getItem('salonWizardDone') && !localStorage.getItem('salonPayrollV1')) openWizard(); }catch(e){}
 window.__loaded=true;
 document.querySelector('.wrap').addEventListener('change', ()=>{ if(window.__loaded) saveState(); });
 </script>
