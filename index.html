@@ -534,8 +534,10 @@ const STD_GRADES=[[58000,0],[68000,63000],[78000,73000],[88000,83000],[98000,930
 function gradeStd(reward){ let s=STD_GRADES[0][0]; for(const [std,low] of STD_GRADES){ if(reward>=low) s=std; } return s; }
 /* 標準報酬月額：既定は「給与額から自動推定（おすすめ）」。手動オフのときだけ選択値を使う */
 function effStd(s, gross){ return (s.stdAuto!==false) ? gradeStd(gross) : (num(s.stdReward)||gradeStd(gross)); }
-/* 被保険者負担の端数：50銭以下切捨・50銭超切上（協会けんぽ既定。労使協定で変更可） */
-function roundEmp(x){ const f=x-Math.floor(x); return f<=0.5?Math.floor(x):Math.ceil(x); }
+/* 被保険者負担の端数：50銭以下切捨・50銭超切上（協会けんぽ既定。労使協定で変更可）
+   ※浮動小数点誤差で「ちょうど50銭」が x.5000…09 と評価され誤って切上→+1円 になるのを防ぐため、
+     小数部を1銭未満(4桁)で丸めてFPノイズを除いてから50銭判定する（新潟11万等の+1円バグの修正）。 */
+function roundEmp(x){ const r=Math.round(x*10000)/10000; const f=r-Math.floor(r); return f<=0.5?Math.floor(r):Math.ceil(r); }
 /* 年齢境界の資格フラグ（後方互換：boolean=介護該当のみ／object={kaigo,kosei,kenpo}） */
 function shakaiFlags(ageOrFlags){
   if(ageOrFlags && typeof ageOrFlags==="object") return {kaigo:!!ageOrFlags.kaigo, kosei:ageOrFlags.kosei!==false, kenpo:ageOrFlags.kenpo!==false};
@@ -1535,6 +1537,10 @@ function runTests(){
       expect:{health:8593,shienkin:195,pension:15555,koyo:860}},
     {label:"子ども子育て支援金 福岡・標準報酬36万（実明細と1円照合）",args:[360000,"福岡県",{kaigo:false,kosei:true,kenpo:true},360000],
       expect:{shienkin:414}},
+    {label:"健保端数 新潟・標準報酬11万（50銭ちょうど=切捨・独立オラクル）",args:[110000,"新潟県",{kaigo:false,kosei:true,kenpo:true},110000],
+      expect:{health:5065}},
+    {label:"健保端数 佐賀・標準報酬5.8万（50銭ちょうど=切捨・独立オラクル）",args:[58000,"佐賀県",{kaigo:false,kosei:true,kenpo:true},58000],
+      expect:{health:3059}},
     {label:"社保 東京・標準報酬30万・40歳以上（介護1.62%）",args:[300000,"東京都",true,400000],
       expect:{health:14775,kaigo:2430,pension:27450,koyo:2000}},
     {label:"社保 厚年上限・標準報酬88万→厚年は65万で頭打ち",args:[880000,"東京都",false,900000],
