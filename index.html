@@ -601,6 +601,8 @@ function ageFlagsFor(birthISO, targetYm){
 }
 /* 退職日→当月の社保(健保介護厚年)を徴収するか。資格喪失日=退職日の翌日、前月分まで徴収。末日退職=喪失翌月1日=当月分徴収 */
 function socialChargedThisMonth(s, targetYm){
+  // 同月得喪（入社と退職が同じ月＝対象月）は当月分1ヶ月を徴収（月中退職の非徴収より優先。警告と計算の不一致を解消）
+  if(s.hireDate && s.retireDate && targetYm && s.hireDate.slice(0,7)===targetYm && s.retireDate.slice(0,7)===targetYm) return true;
   if(!s.retireDate) return s.shakai!==false; // 退職日未入力は手動トグルに従う
   const rp=s.retireDate.split("-").map(Number); if(rp.length<3||!rp[0]) return s.shakai!==false;
   const shitsubi=new Date(rp[0],rp[1]-1,rp[2]); shitsubi.setDate(shitsubi.getDate()+1); // 資格喪失日
@@ -682,6 +684,8 @@ function applyPref(){
 /* ---------- tabs ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
 function switchTab(name){
+  // 結果系タブを開くときは必ず再計算＝編集後に古い明細/内訳/台帳を表示・印刷する事故を防ぐ（独立UX監査P0）
+  if(window.__loaded && (name==="result"||name==="payslip"||name==="chobo")){ try{ calcAll(); }catch(_){} }
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
   document.querySelectorAll(".tabpage").forEach(p=>p.classList.toggle("hidden",p.id!==name));
   updateWizard(name);
@@ -1155,7 +1159,7 @@ function upd(i,k,v){
   syncTotals();
   if(window.__loaded)saveState();
 }
-function rmStaff(i){ staff.splice(i,1); renderInput(); }
+function rmStaff(i){ const nm=(staff[i]&&staff[i].name)||('スタッフ'+(i+1)); if(!confirm(`「${nm}」を削除します。この人の当月入力は元に戻せません。よろしいですか？`)) return; staff.splice(i,1); renderInput(); if(window.__loaded)saveState(); }
 /* 未入力の最初のスタッフへジャンプ＋一時ハイライト（検知≠防止＝気づける だけでなく その場で直せる） */
 function jumpToUnfilled(){
   const has=s=>num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.nomCount)||num(s.commAmount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0))||(s.wageType==="hourly"&&num(s.normalHours)>0);
@@ -1389,6 +1393,11 @@ function renderPayslip(cfg,rows){
       <tr><td>所得税（源泉 ${bo.rate}%）</td><td>−${yen(bo.tax)}</td></tr>
       <tr style="border-top:2px solid var(--line)"><td><b>賞与 差引支給額</b></td><td class="gross">${yen(bo.net)}</td></tr>
       </tbody></table></div><div class="hint">賞与の社保・源泉とも自動計算</div></div>`;
+    // 致命的な警告（手取りマイナス・最賃割れ）は配布モードでも必ず出す＝担当が見落とさない（独立UX監査P0）。管理用は下で全flag表示するのでここは配布のみ。
+    if(payslipMode==='staff'){
+      if(net<0) h+=`<span class="flag bad">差引支給額がマイナス（社保・税＞支給）。要確認</span>`;
+      r.flags.filter(f=>f.lv==='bad'&&/最低賃金を下回る/.test(f.t)).forEach(f=>h+=`<span class="flag bad">${f.t}</span>`);
+    }
     if(payslipMode!=='staff'){
     // この明細で"何を前提に計算したか"を平易語で常時可視化（オーナーが黙って間違えるのを防ぐ・検知≠防止）
     (function(){
@@ -1399,6 +1408,8 @@ function renderPayslip(cfg,rows){
       else chk.push(`所得税は手入力（${s.taxCol==="乙"?"扶養控除等申告書の提出なし＝乙":"日雇＝丙"}）`);
       const minOK=r.flags.find(f=>/最低賃金OK/.test(f.t)); const minNG=r.flags.find(f=>/最低賃金を下回る/.test(f.t));
       if(minOK) chk.push("最低賃金は<b>クリア</b>"); else if(minNG) chk.push("<b>最低賃金を下回る可能性</b>あり（要確認）");
+      if(num(s.jumin)===0) chk.push("住民税は<b>0で計算</b>（未入力）。市区町村の通知額が来たら入れてください（今の手取りは実際より多めです）");
+      if(s.stdAuto!==false) chk.push("標準報酬は<b>給与額から自動推定</b>。歩合で毎月変動する人は、年金機構の通知額で固定（詳細で設定）した方が正確です");
       h+=`<div class="rowbox" style="margin-top:10px;background:var(--gold-soft);border-color:#ecdcae"><div class="subhead" style="margin-top:0">この明細の前提（ご確認ください）</div><ul style="margin:4px 0 0;padding-left:18px;font-size:12.5px;line-height:1.9">${chk.map(c=>`<li>${c}</li>`).join("")}</ul></div>`;
     })();
     r.flags.forEach(f=>h+=`<span class="flag ${f.lv}">${f.t}</span>`);
@@ -1693,7 +1704,7 @@ function restoreState(o){
   staff = Array.isArray(o.staff)? o.staff : staff;
   renderStaff();
 }
-function clearSaved(){ try{ localStorage.removeItem('salonPayrollV1'); }catch(e){} location.reload(); }
+function clearSaved(){ if(!confirm("この端末の保存データ（設定・全スタッフ）を消去します。元に戻せません。よろしいですか？")) return; try{ localStorage.removeItem('salonPayrollV1'); }catch(e){} location.reload(); }
 function closeOnboard(){ var e=document.getElementById('onboard'); if(e) e.style.display='none'; try{ localStorage.setItem('salonOnboardDone','1'); }catch(_){} }
 function startFresh(){ if(!confirm("サンプル（サンプルサロン・山田・佐藤）を消して、空の状態から始めますか？")) return;
   staff=[]; addStaff(); $("salonName").value=""; $("baseSalary").value="0"; renderStaff(); calcAll(); saveState(); switchTab('setup'); window.scrollTo(0,0); }
