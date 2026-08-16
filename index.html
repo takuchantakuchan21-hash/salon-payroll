@@ -521,7 +521,7 @@
 const MINWAGE_META={"fiscal": "令和7年度(2025)", "source": "厚生労働省 地域別最低賃金全国一覧", "url": "https://www.mhlw.go.jp/content/11200000/001571192.pdf", "extracted": "2026-08-10", "note": "毎年10月頃に改定。次回改定（令和8年度）反映まで要注意。特定（産業別）最低賃金・最賃算入賃金の範囲は社労士確認。"};
 const MINWAGE={"北海道":[1075,"2025-10-04"],"青森県":[1029,"2025-11-21"],"岩手県":[1031,"2025-12-01"],"宮城県":[1038,"2025-10-04"],"秋田県":[1031,"2026-03-31"],"山形県":[1032,"2025-12-23"],"福島県":[1033,"2026-01-01"],"茨城県":[1074,"2025-10-12"],"栃木県":[1068,"2025-10-01"],"群馬県":[1063,"2026-03-01"],"埼玉県":[1141,"2025-11-01"],"千葉県":[1140,"2025-10-03"],"東京都":[1226,"2025-10-03"],"神奈川県":[1225,"2025-10-04"],"新潟県":[1050,"2025-10-02"],"富山県":[1062,"2025-10-12"],"石川県":[1054,"2025-10-08"],"福井県":[1053,"2025-10-08"],"山梨県":[1052,"2025-12-01"],"長野県":[1061,"2025-10-03"],"岐阜県":[1065,"2025-10-18"],"静岡県":[1097,"2025-11-01"],"愛知県":[1140,"2025-10-18"],"三重県":[1087,"2025-11-21"],"滋賀県":[1080,"2025-10-05"],"京都府":[1122,"2025-11-21"],"大阪府":[1177,"2025-10-16"],"兵庫県":[1116,"2025-10-04"],"奈良県":[1051,"2025-11-16"],"和歌山県":[1045,"2025-11-01"],"鳥取県":[1030,"2025-10-04"],"島根県":[1033,"2025-11-17"],"岡山県":[1047,"2025-12-01"],"広島県":[1085,"2025-11-01"],"山口県":[1043,"2025-10-16"],"徳島県":[1046,"2026-01-01"],"香川県":[1036,"2025-10-18"],"愛媛県":[1033,"2025-12-01"],"高知県":[1023,"2025-12-01"],"福岡県":[1057,"2025-11-16"],"佐賀県":[1030,"2025-11-21"],"長崎県":[1031,"2025-12-01"],"熊本県":[1034,"2026-01-01"],"大分県":[1035,"2026-01-01"],"宮崎県":[1023,"2025-11-16"],"鹿児島県":[1026,"2025-11-01"],"沖縄県":[1023,"2025-12-01"]};
 /* === 社会保険 料率・標準報酬等級（Rank A・令和8年度・機械抽出・手打ちなし／額表と1円照合済）=== */
-const SHAKAI_META={"fiscal": "令和8年度(2026)", "health_src": "協会けんぽ 都道府県別保険料率(令和8年3月分〜)", "kaigo": 1.62, "pension": 18.3, "koyo_emp": 5.0, "koyo_fiscal": "令和8年度(2026)", "koyo_src": "厚労省 雇用保険料率(一般の事業・労働者負担5/1000)", "extracted": "2026-08-10", "note": "健保は毎年3月/雇用保険は毎年4月改定→要更新。標準報酬月額は定時決定/随時改定で決まる年次固定値であり毎月の変動給与から算出しない。"};
+const SHAKAI_META={"fiscal": "令和8年度(2026)", "health_src": "協会けんぽ 都道府県別保険料率(令和8年3月分〜)", "kaigo": 1.62, "shienkin": 0.23, "shienkin_src": "子ども・子育て支援金(協会けんぽ 令和8年4月分〜・全被保険者0.23%・労使折半)", "pension": 18.3, "koyo_emp": 5.0, "koyo_fiscal": "令和8年度(2026)", "koyo_src": "厚労省 雇用保険料率(一般の事業・労働者負担5/1000)", "extracted": "2026-08-14", "note": "健保/支援金は毎年3月・雇用保険は毎年4月改定→要更新。子ども・子育て支援金は令和8年4月分から0.23%(折半)を健保と別建てで徴収。標準報酬月額は定時決定/随時改定で決まる年次固定値。"};
 const HEALTH_R8={"北海道":10.28,"青森県":9.85,"岩手県":9.51,"宮城県":10.1,"秋田県":10.01,"山形県":9.75,"福島県":9.5,"茨城県":9.52,"栃木県":9.82,"群馬県":9.68,"埼玉県":9.67,"千葉県":9.73,"東京都":9.85,"神奈川県":9.92,"新潟県":9.21,"富山県":9.59,"石川県":9.7,"福井県":9.71,"山梨県":9.55,"長野県":9.63,"岐阜県":9.8,"静岡県":9.61,"愛知県":9.93,"三重県":9.77,"滋賀県":9.88,"京都府":9.89,"大阪府":10.13,"兵庫県":10.12,"奈良県":9.91,"和歌山県":10.06,"鳥取県":9.86,"島根県":9.94,"岡山県":10.05,"広島県":9.78,"山口県":10.15,"徳島県":10.24,"香川県":10.02,"愛媛県":9.98,"高知県":10.05,"福岡県":10.11,"佐賀県":10.55,"長崎県":10.06,"熊本県":10.08,"大分県":10.08,"宮崎県":9.77,"鹿児島県":10.13,"沖縄県":9.44};
 const STD_GRADES=[[58000,0],[68000,63000],[78000,73000],[88000,83000],[98000,93000],[104000,101000],[110000,107000],[118000,114000],[126000,122000],[134000,130000],[142000,138000],[150000,146000],[160000,155000],[170000,165000],[180000,175000],[190000,185000],[200000,195000],[220000,210000],[240000,230000],[260000,250000],[280000,270000],[300000,290000],[320000,310000],[340000,330000],[360000,350000],[380000,370000],[410000,395000],[440000,425000],[470000,455000],[500000,485000],[530000,515000],[560000,545000],[590000,575000],[620000,605000],[650000,635000],[680000,665000],[710000,695000],[750000,730000],[790000,770000],[830000,810000],[880000,855000],[930000,905000],[980000,955000],[1030000,1005000],[1090000,1055000],[1150000,1115000],[1210000,1175000],[1270000,1235000],[1330000,1295000],[1390000,1355000]];
 /* 報酬月額→標準報酬月額 スナップ（健保50等級） */
@@ -549,14 +549,15 @@ function calcBonus(cfg, s, af, chargeSocial){
   const koseiOK=!notApplied && chargeSocial!==false && !s.sanpq && af.kosei;
   const health=kenpoOK?roundEmp(stdBonus*hRate/2):0;       // ※健保は年度累計573万上限（本ツールは単月・要確認）
   const kaigo=(kenpoOK&&af.kaigo)?roundEmp(stdBonus*(SHAKAI_META.kaigo/100)/2):0;
+  const shienkin=kenpoOK?roundEmp(stdBonus*(SHAKAI_META.shienkin/100)/2):0;                   // 子ども・子育て支援金(標準賞与額・折半)
   const pension=koseiOK?roundEmp(Math.min(stdBonus,1500000)*(SHAKAI_META.pension/100)/2):0; // 厚年は1回150万上限
   const koyo=(s.koyoIns!==false)?roundEmp(bonus*(SHAKAI_META.koyo_emp/1000)):0;
-  const social=health+kaigo+pension+koyo;
+  const social=health+kaigo+shienkin+pension+koyo;
   // 賞与源泉：甲欄は前月社保後給与＋扶養数から算出率表で率を自動取得。乙欄は率を手入力
   const bonusDeps=(s.spouse?1:0)+(num(s.deps)||0)+(num(s.taxAdd)||0);
   const rate=(s.taxCol==="甲")?bonusRateFor(bonusDeps, num(s.bonusPrev)||0):(num(s.bonusRate)||0);
   const tax=Math.floor(Math.max(0,bonus-social)*rate/100); // 賞与源泉＝(賞与−社保)×率
-  return {bonus,stdBonus,health,kaigo,pension,koyo,social,rate,tax,net:bonus-social-tax};
+  return {bonus,stdBonus,health,kaigo,shienkin,pension,koyo,social,rate,tax,net:bonus-social-tax};
 }
 /* 社会保険料（被保険者負担・月額）。std=標準報酬月額, pref=都道府県, ageOrFlags=介護該当(bool)or{kaigo,kosei,kenpo}, wage=当月賃金総額(雇用保険用) */
 function calcShakai(std, pref, ageOrFlags, wage){
@@ -566,9 +567,10 @@ function calcShakai(std, pref, ageOrFlags, wage){
   const pensionStd=Math.min(650000,Math.max(88000,healthStd));
   const health=f.kenpo?roundEmp(healthStd*hRate/2):0;                                  // 75歳で健保喪失
   const kaigo=(f.kaigo&&f.kenpo)?roundEmp(healthStd*(SHAKAI_META.kaigo/100)/2):0;      // 40〜64歳
+  const shienkin=f.kenpo?roundEmp(healthStd*(SHAKAI_META.shienkin/100)/2):0;           // 子ども・子育て支援金(令和8.4〜・健保と別建て・折半)。75歳健保喪失で0
   const pension=f.kosei?roundEmp(pensionStd*(SHAKAI_META.pension/100)/2):0;            // 70歳で厚年喪失
   const koyo=roundEmp(wage*(SHAKAI_META.koyo_emp/1000));
-  return {healthStd,pensionStd,health,kaigo,pension,koyo,total:health+kaigo+pension+koyo};
+  return {healthStd,pensionStd,health,kaigo,shienkin,pension,koyo,total:health+kaigo+shienkin+pension+koyo};
 }
 /* 生年月日＋対象年月から年齢資格を自動判定（到達＝誕生日の前日基準・1日生まれ注意） */
 function reachMonthIdx(birthISO, age, onBirthday){
@@ -1261,8 +1263,8 @@ function renderChobo(cfg,rows){
     else {
       const af=s.birth?ageFlagsFor(s.birth,cfg.targetYm):{kaigo:!!s.age40,kosei:true,kenpo:true};
       let sh=calcShakai(effStd(s,r.gross),cfg.prefecture,af,r.gross);
-      if(cfg.shakaiApply==="個人非適用"||!socialChargedThisMonth(s,cfg.targetYm)||s.sanpq) sh={...sh,health:0,kaigo:0,pension:0};
-      if(s.koyoIns===false) sh={...sh,koyo:0}; sh.total=sh.health+sh.kaigo+sh.pension+sh.koyo;
+      if(cfg.shakaiApply==="個人非適用"||!socialChargedThisMonth(s,cfg.targetYm)||s.sanpq) sh={...sh,health:0,kaigo:0,shienkin:0,pension:0};
+      if(s.koyoIns===false) sh={...sh,koyo:0}; sh.total=sh.health+sh.kaigo+(sh.shienkin||0)+sh.pension+sh.koyo;
       const cN=Math.min(r.commute||0, commuteLimit(s.commuteMode,s.commuteKm));
       const A=Math.max(0,r.gross-sh.total-cN);
       const tax=(s.taxCol==="甲")?calcTaxKou(A,s.spouse,s.deps+(num(s.taxAdd)||0)):num(s.jutec);
@@ -1311,9 +1313,9 @@ function renderPayslip(cfg,rows){
     const notApplied=(cfg.shakaiApply==="個人非適用");
     // 資格喪失月・産休育休＝健保/介護/厚年(＝狭義の社会保険)のみ停止。雇用保険は「賃金支払の都度」課すので得喪と非連動
     const chargeSocial=socialChargedThisMonth(s, cfg.targetYm);
-    if(notApplied || !chargeSocial || s.sanpq) sh={...sh, health:0, kaigo:0, pension:0};
+    if(notApplied || !chargeSocial || s.sanpq) sh={...sh, health:0, kaigo:0, shienkin:0, pension:0};
     if(s.koyoIns===false) sh={...sh, koyo:0}; // 雇用保険 適用外（週20h未満等）
-    sh.total = sh.health + sh.kaigo + sh.pension + sh.koyo;
+    sh.total = sh.health + sh.kaigo + (sh.shienkin||0) + sh.pension + sh.koyo;
     const cLimit=commuteLimit(s.commuteMode, s.commuteKm);
     const commuteNontax=Math.min(r.commute||0, cLimit);          // 非課税は限度まで。超過は課税
     const commuteTaxable=(r.commute||0)-commuteNontax;
@@ -1373,6 +1375,7 @@ function renderPayslip(cfg,rows){
       <tr><td>賞与額（標準賞与 ${yen(bo.stdBonus)}）</td><td>${yen(bo.bonus)}</td></tr>
       <tr><td>健康保険料</td><td>−${yen(bo.health)}</td></tr>
       ${bo.kaigo>0?`<tr><td>介護保険料</td><td>−${yen(bo.kaigo)}</td></tr>`:""}
+      ${bo.shienkin>0?`<tr><td>子ども・子育て支援金</td><td>−${yen(bo.shienkin)}</td></tr>`:""}
       <tr><td>厚生年金保険料</td><td>−${yen(bo.pension)}</td></tr>
       <tr><td>雇用保険料</td><td>−${yen(bo.koyo)}</td></tr>
       <tr><td>所得税（源泉 ${bo.rate}%）</td><td>−${yen(bo.tax)}</td></tr>
@@ -1409,6 +1412,7 @@ function renderPayslip(cfg,rows){
     h+=`<details class="adv" style="margin-top:8px"><summary>控除の計算根拠（額表・告示どおりか確認できます）</summary><div class="scroll"><table><tbody>
       <tr><td>健康保険料</td><td class="muted">標準報酬 ${yen(sh.healthStd)} × ${HEALTH_R8[cfg.prefecture]}% ÷2</td><td>${yen(sh.health)}</td></tr>
       ${sh.kaigo>0?`<tr><td>介護保険料</td><td class="muted">標準報酬 ${yen(sh.healthStd)} × ${SHAKAI_META.kaigo}% ÷2</td><td>${yen(sh.kaigo)}</td></tr>`:''}
+      ${sh.shienkin>0?`<tr><td>子ども・子育て支援金</td><td class="muted">標準報酬 ${yen(sh.healthStd)} × ${SHAKAI_META.shienkin}% ÷2（令和8.4〜）</td><td>${yen(sh.shienkin)}</td></tr>`:''}
       <tr><td>厚生年金保険料</td><td class="muted">標準報酬 ${yen(sh.pensionStd)} × ${SHAKAI_META.pension}% ÷2</td><td>${yen(sh.pension)}</td></tr>
       <tr><td>雇用保険料</td><td class="muted">賃金総額 ${yen(r.gross)} × ${SHAKAI_META.koyo_emp}/1000</td><td>${yen(sh.koyo)}</td></tr>
       ${autoTax!=null?`<tr><td>所得税（源泉）</td><td class="muted">自動計算・課税対象 ${yen(A)}・扶養 ${s.deps}人${s.spouse?'＋配偶者':''}</td><td>${yen(tax)}</td></tr>`:''}
@@ -1521,6 +1525,10 @@ function runTests(){
   const shakaiCases=[
     {label:"社保 東京・標準報酬30万・40歳未満（健保9.85%）",args:[300000,"東京都",false,400000],
       expect:{health:14775,kaigo:0,pension:27450,koyo:2000}},
+    {label:"子ども子育て支援金 福岡・標準報酬17万（実明細SITY様と1円照合）",args:[170000,"福岡県",{kaigo:false,kosei:true,kenpo:true},172000],
+      expect:{health:8593,shienkin:195,pension:15555,koyo:860}},
+    {label:"子ども子育て支援金 福岡・標準報酬36万（実明細と1円照合）",args:[360000,"福岡県",{kaigo:false,kosei:true,kenpo:true},360000],
+      expect:{shienkin:414}},
     {label:"社保 東京・標準報酬30万・40歳以上（介護1.62%）",args:[300000,"東京都",true,400000],
       expect:{health:14775,kaigo:2430,pension:27450,koyo:2000}},
     {label:"社保 厚年上限・標準報酬88万→厚年は65万で頭打ち",args:[880000,"東京都",false,900000],
@@ -1702,9 +1710,9 @@ function payslipNums(cfg,s,r){
   let sh=calcShakai(effStd(s,r.gross),cfg.prefecture,af,r.gross);
   const notApplied=(cfg.shakaiApply==="個人非適用");
   const chargeSocial=socialChargedThisMonth(s,cfg.targetYm);
-  if(notApplied||!chargeSocial||s.sanpq) sh={...sh,health:0,kaigo:0,pension:0};
+  if(notApplied||!chargeSocial||s.sanpq) sh={...sh,health:0,kaigo:0,shienkin:0,pension:0};
   if(s.koyoIns===false) sh={...sh,koyo:0};
-  sh.total=sh.health+sh.kaigo+sh.pension+sh.koyo;
+  sh.total=sh.health+sh.kaigo+(sh.shienkin||0)+sh.pension+sh.koyo;
   const commuteNontax=Math.min(r.commute||0,commuteLimit(s.commuteMode,s.commuteKm));
   const A=Math.max(0,r.gross-sh.total-commuteNontax);
   const autoTax=(s.taxCol==="甲")?calcTaxKou(A,s.spouse,s.deps+(num(s.taxAdd)||0)):null;
@@ -1803,6 +1811,8 @@ try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ let o=JSON.p
   // 勤続年数別歩合は撤去（実務でほぼ無い）：保存済みの設定は「一律」へ寄せる
   if(o.s && o.s.techModel==='tenure') o.s.techModel='flat';
   restoreState(o); saveState();
+  /* 保存済み＝設定済みの人は、毎回②毎月の入力から始める（30人パネル最頻の不満「設定が先頭で、また勉強かとなる」対策） */
+  try{ switchTab('input'); }catch(_){}
 } }catch(e){}
 try{ if(localStorage.getItem('salonOnboardDone')){ const o=document.getElementById('onboard'); if(o) o.style.display='none'; } }catch(e){}
 /* 初回（保存も完了フラグも無い＝まっさらな人）だけ、かんたん設定を自動で開く */
