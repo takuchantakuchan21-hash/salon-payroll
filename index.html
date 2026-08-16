@@ -61,6 +61,12 @@
   .preset-btn{position:relative}
   .preset-i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:6px;border-radius:50%;background:#eef2f7;color:var(--sub);font-size:9px;font-weight:800;vertical-align:middle;cursor:help}
   .preset-btn:hover .preset-i{background:var(--navy);color:#fff}
+  details.hint-more{margin-top:3px}
+  details.hint-more>summary{font-size:11px;color:var(--navy);cursor:pointer;list-style:none;display:inline-block;font-weight:600}
+  details.hint-more>summary::-webkit-details-marker{display:none}
+  details.hint-more>summary::before{content:"▸ ";font-size:9px}
+  details.hint-more[open]>summary::before{content:"▾ "}
+  details.hint-more .body{font-size:11px;color:var(--sub);line-height:1.6;margin-top:3px}
   .wiz-ov{position:fixed;inset:0;background:rgba(15,22,40,.55);z-index:1000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px}
   .wiz-ov.on{display:flex}
   .wiz{background:#fff;max-width:640px;width:100%;border-radius:16px;padding:26px 26px 22px;box-shadow:0 20px 60px rgba(15,22,40,.35)}
@@ -1052,7 +1058,7 @@ function renderStaff(){
     html+=`<div><label>固定残業代（みなし・円）</label><input type="number" value="${s.fixedOT}" oninput="upd(${i},'fixedOT',this.value)"></div>`;
     html+=`</div></details>`;
     html+=`<div class="subhead group">通勤</div>`;
-    html+=`<div><label>通勤手当（円/月）</label><input type="number" value="${s.commute}" oninput="upd(${i},'commute',this.value)"><div class="hint">非課税分は自動判定</div></div>`;
+    html+=`<div><label>通勤手当（円/月）</label><input type="number" value="${s.commute}" oninput="upd(${i},'commute',this.value)"><div class="hint">非課税分は自動判定</div><details class="hint-more"><summary>通勤手当と社会保険</summary><div class="body">通勤手当は<b>所得税は非課税</b>（公共15万・マイカー距離別まで）ですが、<b>社会保険の標準報酬には含めます</b>（税と社保で扱いが違う）。標準報酬を手動で設定するときは通勤手当も含めた額で。</div></details></div>`;
     html+=`<div><label>通勤手段</label><select onchange="upd(${i},'commuteMode',this.value);renderStaff()"><option value="公共"${s.commuteMode!=="マイカー"?" selected":""}>公共交通（限度15万）</option><option value="マイカー"${s.commuteMode==="マイカー"?" selected":""}>マイカー等（距離別）</option></select></div>`;
     if(s.commuteMode==="マイカー") html+=`<div><label>片道距離（km）</label><input type="number" value="${s.commuteKm}" oninput="upd(${i},'commuteKm',this.value)"><div class="hint">非課税限度 ${yen(commuteLimit("マイカー",s.commuteKm))}</div></div>`;
     }
@@ -1088,7 +1094,7 @@ function renderStaff(){
     html+=`<div><label>退職日（あれば）</label><input type="date" value="${s.retireDate}" onchange="upd(${i},'retireDate',this.value)"><div class="hint">${s.retireDate?`当月の社保は<b>${chg?"徴収する":"徴収しない"}</b>（自動判定）`:"入れると当月社保の有無を自動判定"}</div></div>`;
     if(!s.retireDate) html+=`<div style="align-self:end"><label style="display:inline">今月 社保を徴収</label> <input type="checkbox" style="width:auto" ${s.shakai!==false?"checked":""} onchange="upd(${i},'shakai',this.checked)"><div class="hint">健保・厚年のみ停止（雇用保険は継続）</div></div>`;
     html+=`<div><label>税額区分（扶養控除等申告書）</label><select onchange="upd(${i},'taxCol',this.value)"><option value="甲"${s.taxCol==="甲"?" selected":""}>提出あり（メインの勤務先）</option><option value="乙"${s.taxCol==="乙"?" selected":""}>提出なし（掛け持ち等）</option><option value="丙"${s.taxCol==="丙"?" selected":""}>日雇・2ヶ月以内の短期</option></select><div class="hint">「提出なし」「日雇」は所得税を手入力</div></div>`;
-    html+=`<div><label>源泉控除対象 親族の数<span class="muted">(特定親族19-23歳含む)</span></label><input type="number" value="${s.deps}" oninput="upd(${i},'deps',this.value)"><div class="hint">16歳未満は含めない</div></div>`;
+    html+=`<div><label>源泉控除対象 親族の数<span class="muted">(特定親族19-23歳含む)</span></label><input type="number" value="${s.deps}" oninput="upd(${i},'deps',this.value)"><div class="hint">16歳未満は含めない</div><details class="hint-more"><summary>特定親族（19-23歳）の数え方</summary><div class="body">毎月の源泉で人数に＋1するのは<b>合計所得58万円超〜100万円以下</b>（給与だけなら年収約123万〜165万）の19-23歳の親族だけ。100万円超123万円以下の人は年末調整で控除するので<b>毎月の人数には数えません</b>。</div></details></div>`;
     html+=`<div><label>人的控除の加算（該当数）</label><input type="number" value="${s.taxAdd}" oninput="upd(${i},'taxAdd',this.value)"><div class="hint">本人が障害者・寡婦・ひとり親・勤労学生／扶養に障害者がいれば 各＋1</div></div>`;
     html+=`<div style="align-self:end"><label style="display:inline">源泉控除対象 配偶者</label> <input type="checkbox" style="width:auto" ${s.spouse?"checked":""} onchange="upd(${i},'spouse',this.checked)"><div class="hint">本人の所得900万円以下かつ配偶者の所得95万円以下のときだけ該当</div></div>`;
     html+=`<div><label>減給の制裁（円）</label><input type="number" value="${s.genkyu}" oninput="upd(${i},'genkyu',this.value)"><div class="hint">懲戒の減給のみ（材料費などの実費は「天引き」へ）</div></div>`;
