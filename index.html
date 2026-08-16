@@ -470,6 +470,7 @@
       <div id="staffTable" style="display:none"></div>
       <div class="btnrow">
         <div id="addStaffBar" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="addStaff()">＋ スタッフを追加</button></div>
+        <button class="btn ghost sm" onclick="clearMonthlySales()" title="翌月に使い回すとき：設定はそのまま、売上と勤怠だけ0に">今月の売上をクリア</button>
         <button class="btn" onclick="calcAll();switchTab('result')">給与内訳を計算する</button>
       </div>
     </div>
@@ -1708,6 +1709,10 @@ function restoreState(o){
   renderStaff();
 }
 function clearSaved(){ if(!confirm("この端末の保存データ（設定・全スタッフ）を消去します。元に戻せません。よろしいですか？")) return; try{ localStorage.removeItem('salonPayrollV1'); }catch(e){} location.reload(); }
+/* 今月の売上だけをクリア（設定・スタッフ・口座は残す）＝翌月の使い回しを軽く。時間/勤怠も月次分は0に */
+function clearMonthlySales(){ if(!confirm("全員の今月の売上・歩合・勤怠時間を0にします（設定・スタッフ・口座はそのまま）。よろしいですか？")) return;
+  staff.forEach(s=>{ s.techIncl=0; s.retailIncl=0; s.nomIncl=0; s.nomCount=0; s.commAmount=0; s.catSales={}; s.overtimeHours=0; s.nightHours=0; s.holidayHours=0; if(s.wageType==="hourly") s.normalHours=0; });
+  renderInput(); calcAll(); if(window.__loaded)saveState(); }
 function closeOnboard(){ var e=document.getElementById('onboard'); if(e) e.style.display='none'; try{ localStorage.setItem('salonOnboardDone','1'); }catch(_){} }
 function startFresh(){ if(!confirm("サンプル（サンプルサロン・山田・佐藤）を消して、空の状態から始めますか？")) return;
   staff=[]; addStaff(); $("salonName").value=""; $("baseSalary").value="0"; renderStaff(); calcAll(); saveState(); switchTab('setup'); window.scrollTo(0,0); }
@@ -1844,7 +1849,10 @@ try{ if(localStorage.getItem('salonOnboardDone')){ const o=document.getElementBy
 /* 初回（保存も完了フラグも無い＝まっさらな人）だけ、かんたん設定を自動で開く */
 try{ if(!localStorage.getItem('salonWizardDone') && !localStorage.getItem('salonPayrollV1')) openWizard(); }catch(e){}
 /* 二重ナビ解消：設定済み(保存あり)の人は3ステップ帯を隠す＝タブ1系統で回す。初回だけ帯を出す */
-try{ if(localStorage.getItem('salonPayrollV1')){ var _wz=document.getElementById('wizard'); if(_wz) _wz.style.display='none'; } }catch(e){}
+try{ if(localStorage.getItem('salonPayrollV1')){ var _wz=document.getElementById('wizard'); if(_wz) _wz.style.display='none';
+  /* 前置き畳み：2回目以降は説明ステップ・信頼帯を隠して作業に直行（前置き過多の解消） */
+  document.querySelectorAll('.hero .steps, .trust').forEach(function(el){ el.style.display='none'; });
+} }catch(e){}
 window.__loaded=true;
 document.querySelector('.wrap').addEventListener('change', ()=>{ if(window.__loaded) saveState(); });
 </script>
