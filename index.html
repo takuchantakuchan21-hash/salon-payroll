@@ -461,6 +461,7 @@
         <div><span class="lbl">総支給 合計</span><span class="val" id="sumGross">—</span></div>
         <div class="net-card"><span class="lbl">手取り 合計</span><span class="val blue" id="sumNet">—</span></div>
         <div><span class="lbl">売上 未入力</span><span class="val" id="sumUnfilled">—</span></div>
+        <div><span class="lbl">要確認</span><span class="val" id="sumCaution" title="">—</span></div>
       </div>
       <div class="seg-toggle no-print" style="display:inline-flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;margin-bottom:14px">
         <button id="im-card" class="segbtn active" onclick="setInputMode('card')">カード式（1人ずつ）</button>
@@ -1106,7 +1107,7 @@ function renderStaff(){
     html+=`<div><label>勤務先はこの店だけ？<span class="muted">(税額区分)</span></label><select onchange="upd(${i},'taxCol',this.value)"><option value="甲"${s.taxCol==="甲"?" selected":""}>はい（この店がメイン＝甲）</option><option value="乙"${s.taxCol==="乙"?" selected":""}>いいえ（掛け持ち＝乙）</option><option value="丙"${s.taxCol==="丙"?" selected":""}>日雇・2ヶ月以内（丙）</option></select><div class="hint">普通の社員・アルバイトは「はい」。「いいえ」「日雇」は所得税を手入力</div></div>`;
     html+=`<div><label>税の扶養に入れている家族の人数<span class="muted">(源泉控除対象 親族／16歳以上)</span></label><input type="number" value="${s.deps}" oninput="upd(${i},'deps',this.value)"><div class="hint">配偶者は下の欄。16歳未満は含めない</div><details class="hint-more"><summary>特定親族（19-23歳）の数え方</summary><div class="body">毎月の源泉で人数に＋1するのは<b>合計所得58万円超〜100万円以下</b>（給与だけなら年収約123万〜165万）の19-23歳の親族だけ。100万円超123万円以下の人は年末調整で控除するので<b>毎月の人数には数えません</b>。</div></details></div>`;
     html+=`<div><label>障害者・ひとり親などの人数<span class="muted">(人的控除の加算)</span></label><input type="number" value="${s.taxAdd}" oninput="upd(${i},'taxAdd',this.value)"><div class="hint">本人が障害者・寡婦・ひとり親・勤労学生／扶養に障害者がいれば 各＋1。いなければ0</div></div>`;
-    html+=`<div style="align-self:end"><label style="display:inline">源泉控除対象 配偶者</label> <input type="checkbox" style="width:auto" ${s.spouse?"checked":""} onchange="upd(${i},'spouse',this.checked)"><div class="hint">本人の所得900万円以下かつ配偶者の所得95万円以下のときだけ該当</div></div>`;
+    html+=`<div style="align-self:end"><label style="display:inline">税の扶養に入れている配偶者がいる<span class="muted">(源泉控除対象 配偶者)</span></label> <input type="checkbox" style="width:auto" ${s.spouse?"checked":""} onchange="upd(${i},'spouse',this.checked)"><div class="hint">本人の所得900万円以下かつ配偶者の所得95万円以下のときだけ該当</div></div>`;
     html+=`<div><label>減給の制裁（円）</label><input type="number" value="${s.genkyu}" oninput="upd(${i},'genkyu',this.value)"><div class="hint">懲戒の減給のみ（材料費などの実費は「天引き」へ）</div></div>`;
     html+=`<div><label>賞与額（円・あれば）</label><input type="number" value="${s.bonus}" oninput="upd(${i},'bonus',this.value)"><div class="hint">社保・源泉とも自動計算</div></div>`;
     if(num(s.bonus)>0){
@@ -1133,7 +1134,7 @@ function cardTotalPanel(i,gyomu){
 }
 /* 入力のたびに、各カードの手取り・上部の集計ストリップ・一覧式の行合計をまとめて更新（計算は既存関数を使うだけ＝金額ロジックは不変） */
 function syncTotals(){
-  const cfg=getConfig(); let tGross=0,tNet=0,filled=0;
+  const cfg=getConfig(); let tGross=0,tNet=0,filled=0,cautionJumin=0,cautionStd=0;
   staff.forEach((s,i)=>{
     const r=calcStaff(cfg,s); const n=payslipNums(cfg,s,r);
     tGross+=n.gross; tNet+=n.net;
@@ -1148,11 +1149,17 @@ function syncTotals(){
     set('rownet-'+i, yen(n.net));
     const hasSales=num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.nomCount)||num(s.commAmount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0))||(s.wageType==="hourly"&&num(s.normalHours)>0)||num(s.base)>0;
     if(hasSales) filled++;
+    // 要確認（沈黙エラーの可視化・配布/管理どちらのモードでもオーナーが配布前に気づける）
+    if(num(s.jumin)===0) cautionJumin++;
+    const hasComm=num(s.techIncl)||num(s.retailIncl)||num(s.nomIncl)||num(s.commAmount)||(s.catSales&&Object.values(s.catSales).some(v=>num(v)>0));
+    if(s.stdAuto!==false && hasComm) cautionStd++;
   });
   const setS=(id,v)=>{const e=$(id); if(e)e.textContent=v;};
   setS('sumCount', staff.length+'人'); setS('sumGross', yen(tGross)); setS('sumNet', yen(tNet));
   const un=staff.length-filled; setS('sumUnfilled', un===0?'なし ✓':un+'件（クリックで移動）');
   const uEl=$('sumUnfilled'); if(uEl){ uEl.classList.toggle('ok', un===0); uEl.style.cursor=un>0?'pointer':''; uEl.style.textDecoration=un>0?'underline':''; uEl.onclick=un>0?jumpToUnfilled:null; }
+  const caution=cautionJumin+cautionStd; setS('sumCaution', caution===0?'なし ✓':caution+'件');
+  const cEl=$('sumCaution'); if(cEl){ cEl.classList.toggle('ok', caution===0); cEl.title=[cautionJumin?`住民税0の人 ${cautionJumin}人：手取りが実際より多めに出ています（市区町村の通知額を入力）`:'', cautionStd?`社会保険の等級を自動推定の人 ${cautionStd}人：歩合で毎月変動するなら年金機構の通知額で固定を推奨`:''].filter(Boolean).join('　/　')||'沈黙しやすい前提（住民税0・等級自動）はありません'; }
   const g=$('tabtot'), gn=$('tabnet'); if(g)g.textContent=yen(tGross); if(gn)gn.textContent=yen(tNet);
 }
 function upd(i,k,v){
@@ -1174,7 +1181,9 @@ function jumpToUnfilled(){
 }
 /* 入力の見せ方：カード式（1人ずつ）／一覧式（表で全員）。オーナーが選ぶ */
 let inputMode='card';
-function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); syncTotals(); }
+function renderInput(){ if(inputMode==='list') renderStaffTable(); else renderStaff(); applyNumberGuards(); syncTotals(); }
+/* 桁・負数ガード：数値入力に min=0 と inputmode=numeric を一括付与（負数・桁ミス・スマホ記号キー対策） */
+function applyNumberGuards(){ document.querySelectorAll('#staffList input[type=number]').forEach(el=>{ if(!el.hasAttribute('min')) el.min='0'; if(!el.hasAttribute('inputmode')) el.setAttribute('inputmode','numeric'); }); }
 function setInputMode(m){ inputMode=m; const a=$('im-card'),b=$('im-list'); if(a)a.classList.toggle('active',m==='card'); if(b)b.classList.toggle('active',m==='list'); const sl=$('staffList'),st=$('staffTable'); if(sl)sl.style.display=(m==='card')?'':'none'; if(st)st.style.display=(m==='list')?'':'none'; renderInput(); if(window.__loaded)saveState(); }
 function refreshRowTotal(i){ const cfg=getConfig(); const r=calcStaff(cfg,staff[i]); const c=$('rowtot-'+i); if(c)c.textContent=yen(r.gross); const n=$('rownet-'+i); if(n)n.textContent=yen(payslipNums(cfg,staff[i],r).net); const g=$('tabtot'),gn=$('tabnet'); if(g||gn){ let t=0,tn=0; staff.forEach(s=>{const rr=calcStaff(cfg,s); t+=rr.gross; tn+=payslipNums(cfg,s,rr).net;}); if(g)g.textContent=yen(t); if(gn)gn.textContent=yen(tn); } if(window.__loaded)saveState(); }
 /* 一覧式（表）：1人1行・売上等を横に入力→右端に総支給が自動。細かい設定はカード式の「詳細」から */
@@ -1816,7 +1825,7 @@ function exportState(){
 function importState(input){
   const f=input.files&&input.files[0]; if(!f) return;
   const rd=new FileReader();
-  rd.onload=()=>{ try{ restoreState(JSON.parse(rd.result)); saveState(); calcAll(); alert("読み込みました。"); }catch(e){ alert("読み込みに失敗しました（形式が不正）。"); } };
+  rd.onload=()=>{ if(!confirm("今の入力を、読み込んだ内容で上書きします（元に戻せません）。よろしいですか？")){ input.value=""; return; } try{ restoreState(JSON.parse(rd.result)); saveState(); calcAll(); alert("読み込みました。"); }catch(e){ alert("読み込みに失敗しました（形式が不正）。"); } };
   rd.readAsText(f); input.value="";
 }
 
