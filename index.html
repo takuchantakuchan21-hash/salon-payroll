@@ -592,13 +592,13 @@
         <p class="onboard-lead">サロン名と、普段使っている歩合率だけ入れてください。</p>
         <div class="onboard-grid">
           <div class="onboard-field onboard-wide"><label>サロン名</label><input id="obSalonName" placeholder="例：airchair salon" autocomplete="organization"></div>
-          <div class="onboard-field onboard-wide"><label>技術歩合はどちらですか？</label><input id="obTechModel" type="hidden" value="flat"><div class="pay-shape-options"><button type="button" data-model="flat" onclick="chooseOnboardTech('flat')"><b>いつも同じ率</b><span>例：技術売上 × 35%</span></button><button type="button" data-model="tiered" onclick="chooseOnboardTech('tiered')"><b>売上で率が変わる</b><span>例：100万円で35%、150万円で40%</span></button></div></div>
-          <div id="obFlatFields" class="onboard-field onboard-wide"><label>技術歩合率（%）</label><input id="obTechRate" type="number" min="0" max="100" step="0.5" value="35"></div>
+          <div class="onboard-field onboard-wide"><label>技術歩合はどちらですか？</label><input id="obTechModel" type="hidden" value="flat"><div class="pay-shape-options"><button type="button" data-model="flat" onclick="chooseOnboardTech('flat')"><b>いつも同じ率</b><span>例：技術売上 × 10%</span></button><button type="button" data-model="tiered" onclick="chooseOnboardTech('tiered')"><b>売上で率が変わる</b><span>例：売上に応じて10%・15%・20%</span></button></div></div>
+          <div id="obFlatFields" class="onboard-field onboard-wide"><label>技術歩合率（%）</label><input id="obTechRate" type="number" min="0" max="100" step="0.5" value="10"></div>
           <div id="obTierFields" class="onboard-wide hidden">
             <div class="tier-quick-grid">
-              <div><label>60万円まで</label><span><input id="obTier1Max" type="number" value="600000"><em>円まで</em></span><span><input id="obTier1Rate" type="number" step="0.5" value="30"><em>%</em></span></div>
-              <div><label>100万円まで</label><span><input id="obTier2Max" type="number" value="1000000"><em>円まで</em></span><span><input id="obTier2Rate" type="number" step="0.5" value="35"><em>%</em></span></div>
-              <div><label>それを超えたら</label><span class="tier-empty">上限なし</span><span><input id="obTier3Rate" type="number" step="0.5" value="40"><em>%</em></span></div>
+              <div><label>60万円まで</label><span><input id="obTier1Max" type="number" value="600000"><em>円まで</em></span><span><input id="obTier1Rate" type="number" step="0.5" value="10"><em>%</em></span></div>
+              <div><label>100万円まで</label><span><input id="obTier2Max" type="number" value="1000000"><em>円まで</em></span><span><input id="obTier2Rate" type="number" step="0.5" value="15"><em>%</em></span></div>
+              <div><label>それを超えたら</label><span class="tier-empty">上限なし</span><span><input id="obTier3Rate" type="number" step="0.5" value="20"><em>%</em></span></div>
             </div>
           </div>
           <div class="onboard-field onboard-wide retail-quick"><label>店販歩合率（%）</label><div><input id="obRetailRate" type="number" min="0" max="100" step="0.5" value="10" oninput="$('obRetailPreview').textContent=(this.value||0)+'%'"><span>店販売上 × <b id="obRetailPreview">10%</b></span></div></div>
@@ -746,7 +746,7 @@
           </select>
           <div class="hint">人によって率を変える場合は「②毎月の入力」の各スタッフ「詳細」で個別に上書きできます</div>
         </div>
-        <div id="flatBox"><label>技術歩合率（%）</label><input id="techRate" type="number" value="35" step="0.5"></div>
+        <div id="flatBox"><label>技術歩合率（%）</label><input id="techRate" type="number" value="10" step="0.5"></div>
       </div>
       <div id="tieredBox" class="rowbox hidden">
         <div class="subhead">売上ランク別（帯ごとに率を変える）</div>
@@ -1506,11 +1506,16 @@ function fillOnboardPrefectures(){
 function prefillOnboarding(){
   $('obSalonName').value=($('salonName').value||'').trim();
   $('obTechModel').value=($('techModel').value==='tiered')?'tiered':'flat'; $('obSalesBasis').value=$('salesBasis').value||'excl';
-  $('obTechRate').value=num($('techRate').value)||35; $('obRetailRate').value=num($('retailRate').value)||10;
+  /* 旧版の仮初期値35%が保存されていても、初回アンケート未完了なら新しい標準10%で提示し直す。
+     「今のデータで続ける」を選んだ既存利用者や、設定済み店舗の35%は変更しない。 */
+  let quickStartDone=false; try{quickStartDone=!!localStorage.getItem('salonOnboardingR10Done');}catch(_){}
+  const savedFlatRate=num($('techRate').value);
+  $('obTechRate').value=(!quickStartDone&&savedFlatRate===35)?10:(savedFlatRate||10); $('obRetailRate').value=num($('retailRate').value)||10;
   const tiers=[...document.querySelectorAll('.tier-row')];
-  if(tiers[0]){ $('obTier1Max').value=num(tiers[0].querySelector('.t-upto').value)||600000; $('obTier1Rate').value=num(tiers[0].querySelector('.t-rate').value)||30; }
-  if(tiers[1]){ $('obTier2Max').value=num(tiers[1].querySelector('.t-upto').value)||1000000; $('obTier2Rate').value=num(tiers[1].querySelector('.t-rate').value)||35; }
-  if(tiers[2])$('obTier3Rate').value=num(tiers[2].querySelector('.t-rate').value)||40;
+  const legacyTierDefaults=!quickStartDone&&tiers.length>=3&&[30,35,40].every((rate,i)=>num(tiers[i].querySelector('.t-rate').value)===rate);
+  if(tiers[0]){ $('obTier1Max').value=num(tiers[0].querySelector('.t-upto').value)||600000; $('obTier1Rate').value=legacyTierDefaults?10:(num(tiers[0].querySelector('.t-rate').value)||10); }
+  if(tiers[1]){ $('obTier2Max').value=num(tiers[1].querySelector('.t-upto').value)||1000000; $('obTier2Rate').value=legacyTierDefaults?15:(num(tiers[1].querySelector('.t-rate').value)||15); }
+  if(tiers[2])$('obTier3Rate').value=legacyTierDefaults?20:(num(tiers[2].querySelector('.t-rate').value)||20);
   const roleAllow=(getConfig().allowances||[]).find(a=>a.id==='allow-role'||a.name==='役職手当');
   $('onboardStaffRows').innerHTML=''; onboardStaffSeq=0;
   const meaningful=staff.filter(s=>s&&(String(s.name||'').trim()||num(s.base)>0||num(s.hourlyWage)>0||num((s.allowanceAmounts||{})['allow-role'])>0));
@@ -2777,8 +2782,8 @@ function importState(input){
 
 /* ---------- seed defaults ---------- */
 initPref();
-addTier({upTo:600000,rate:30}); addTier({upTo:1000000,rate:35}); addTier({upTo:"",rate:40});
-addTenure({years:0,rate:30}); addTenure({years:3,rate:35}); addTenure({years:5,rate:40});
+addTier({upTo:600000,rate:10}); addTier({upTo:1000000,rate:15}); addTier({upTo:"",rate:20});
+addTenure({years:0,rate:10}); addTenure({years:3,rate:15}); addTenure({years:5,rate:20});
 /* 標準給与の役職手当だけは0円欄を最初から用意。他の手当は追加メニューへ。 */
 addAllow({id:'allow-role',name:'役職手当',amount:0,minInc:true,otInc:true});
 /* 初回に架空の売上を混ぜない。空の1名から開始し、デモ値を実データと誤認させない。 */
@@ -2802,6 +2807,15 @@ try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ let o=JSON.p
   if(localStorage.getItem('salonMigNail')!=='1'){
     if(Array.isArray(o.saleCats)) o.saleCats=o.saleCats.filter(c=>!(['ネイル','マツエク'].includes(String(c&&c.name||'').trim())));
     localStorage.setItem('salonMigNail','1');
+  }
+  /* R11：こちらの公開確認で作った「検証サロン」だけ、旧仮初期値35%を10%へ掃除する。
+     実際のサロンが自分で設定した35%は契約条件なので勝手に変更しない。 */
+  if(localStorage.getItem('salonMigVerificationRateR11')!=='1'){
+    const isVerification=String(o.s&&o.s.salonName||'').trim().startsWith('検証');
+    if(isVerification&&o.s&&o.s.techModel==='flat'&&num(o.s.techRate)===35) o.s.techRate='10';
+    const oldTierDefaults=Array.isArray(o.tiers)&&o.tiers.length>=3&&[30,35,40].every((rate,i)=>num(o.tiers[i]&&o.tiers[i].rate)===rate);
+    if(isVerification&&oldTierDefaults) [10,15,20].forEach((rate,i)=>{o.tiers[i].rate=String(rate);});
+    localStorage.setItem('salonMigVerificationRateR11','1');
   }
   // 勤続年数別歩合は撤去（実務でほぼ無い）：保存済みの設定は「一律」へ寄せる
   if(o.s && o.s.techModel==='tenure') o.s.techModel='flat';
