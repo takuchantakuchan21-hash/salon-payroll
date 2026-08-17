@@ -259,13 +259,14 @@
   .onboard-head{padding:25px 28px 18px;border-bottom:1px solid var(--line);background:#fff}
   .onboard-head h3{margin:0;color:var(--navy)}
   .onboard-head .wsub{margin:7px 0 0}
-  .onboard-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:18px}
+  .onboard-progress{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:18px}
   .onboard-progress button{border:0;border-radius:9px;background:var(--bg-soft);color:var(--sub);padding:9px 7px;font-size:11px;font-weight:800;cursor:default}
   .onboard-progress button.active{background:var(--navy);color:#fff}
   .onboard-progress button.done{background:var(--blue-soft);color:var(--navy)}
   .onboard-body{padding:24px 28px 8px;max-height:min(66vh,680px);overflow:auto;background:#fff}
   .onboard-step{display:none}
   .onboard-step.active{display:block}
+  .onboard-kicker{margin-bottom:5px;color:var(--blue);font-size:10.5px;font-weight:900;letter-spacing:.12em}
   .onboard-step h4{margin:0 0 5px;color:var(--navy);font-size:18px}
   .onboard-lead{margin:0 0 20px;color:var(--sub);font-size:12.5px;line-height:1.7}
   .onboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
@@ -274,6 +275,23 @@
   .onboard-checks{display:flex;gap:18px;flex-wrap:wrap;padding:13px 14px;border:1px solid var(--line);border-radius:11px;background:var(--bg-soft)}
   .onboard-checks label{display:flex;align-items:center;gap:7px;margin:0;font-size:13px;color:var(--ink);cursor:pointer}
   .onboard-checks input{width:auto}
+  .pay-shape-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pay-shape-options button{appearance:none;border:1.5px solid var(--line);border-radius:13px;background:#fff;padding:15px;text-align:left;color:var(--navy);cursor:pointer}
+  .pay-shape-options button b{display:block;font-size:14px}
+  .pay-shape-options button span{display:block;margin-top:4px;color:var(--sub);font-size:11px;line-height:1.5}
+  .pay-shape-options button.sel{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 0 0 2px rgba(47,107,255,.08)}
+  .tier-quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .tier-quick-grid>div{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg-soft)}
+  .tier-quick-grid label{display:block;margin-bottom:8px;color:var(--navy);font-size:11px;font-weight:900}
+  .tier-quick-grid span{display:flex;align-items:center;gap:5px;margin-top:6px}
+  .tier-quick-grid input{min-width:0;padding:9px}
+  .tier-quick-grid em{font-size:10px;color:var(--sub);font-style:normal;white-space:nowrap}
+  .tier-quick-grid .tier-empty{min-height:40px;color:var(--sub);font-size:11px}
+  .retail-quick>div{display:flex;align-items:center;gap:12px}
+  .retail-quick input{max-width:180px}
+  .retail-quick span{color:var(--sub);font-size:12px}.retail-quick b{color:var(--blue);font-size:16px}
+  .onboard-detail{margin-top:15px;border-top:1px solid var(--line);padding-top:13px}
+  .onboard-detail summary{cursor:pointer;color:var(--sub);font-size:11.5px;font-weight:800}
   .onboard-note{margin-top:14px;padding:12px 14px;border-left:3px solid var(--blue);background:var(--blue-soft);border-radius:8px;color:var(--navy);font-size:12px;line-height:1.7}
   .onboard-staff{display:grid;gap:10px}
   .onboard-staff-row{display:grid;grid-template-columns:1.2fr .8fr 1fr 1fr auto;gap:9px;align-items:end;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--bg-soft)}
@@ -291,6 +309,8 @@
   .onboard-confirm label{display:flex;gap:8px;align-items:flex-start;margin:0;color:var(--navy);font-size:12.5px;line-height:1.65;font-weight:700}
   .onboard-confirm input{width:auto;margin-top:4px}
   .onboard-error{min-height:20px;color:var(--bad);font-size:12px;font-weight:700;margin-top:8px}
+  .quick-next-preview{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:13px 15px;border-radius:11px;background:var(--blue-soft);color:var(--navy)}
+  .quick-next-preview span{font-size:10.5px;font-weight:800}.quick-next-preview b{font-size:13px}
   .onboard-foot{display:flex;align-items:center;gap:10px;padding:16px 28px 22px;border-top:1px solid var(--line);background:#fff}
   .onboard-foot .spacer{flex:1}
   .input-summary>div{border-color:#d5dfed;box-shadow:0 6px 18px rgba(18,58,143,.04)}
@@ -331,10 +351,11 @@
     .onboard-head{padding:20px 18px 15px}
     .onboard-progress{gap:4px}.onboard-progress button{font-size:9.5px;padding:8px 3px}
     .onboard-body{padding:20px 18px 5px;max-height:none;overflow:visible}
-    .onboard-grid,.onboard-summary,.onboard-examples{grid-template-columns:1fr}
+    .onboard-grid,.onboard-summary,.onboard-examples,.pay-shape-options,.tier-quick-grid{grid-template-columns:1fr}
     .onboard-staff-row{grid-template-columns:1fr 1fr}
     .onboard-staff-row .ob-name{grid-column:1/-1}
     .onboard-staff-row .ob-remove{grid-column:1/-1;width:100%}
+    .retail-quick>div,.quick-next-preview{align-items:flex-start;flex-direction:column}
     .onboard-foot{position:sticky;bottom:0;padding:13px 18px;display:grid;grid-template-columns:1fr 1fr;box-shadow:0 -8px 20px rgba(18,58,143,.06)}
     .onboard-foot .spacer{display:none}.onboard-foot .btn{width:100%;padding-left:8px;padding-right:8px}
   }
@@ -558,68 +579,46 @@
 <div id="setupWizard" class="wiz-ov no-print" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
   <div class="wiz onboard">
     <div class="onboard-head">
-      <h3 id="onboardTitle">初回セットアップ</h3>
-      <p class="wsub">質問に答えると、店舗ルールとスタッフ設定へまとめて反映します。</p>
+      <h3 id="onboardTitle">かんたんスタート</h3>
+      <p class="wsub">最初は2つだけ。あとでいつでも変更できます。</p>
       <div class="onboard-progress" id="onboardProgress">
-        <button class="active">1　お店</button><button>2　歩合ルール</button><button>3　スタッフ</button><button>4　確認</button>
+        <button class="active">1　給与の形</button><button>2　スタッフ</button>
       </div>
     </div>
     <div class="onboard-body">
       <section class="onboard-step active" data-step="1">
-        <h4>まず、お店のことを教えてください</h4>
-        <p class="onboard-lead">ここで入れた内容は「店舗ルール」へ反映されます。現在のβ版は1店舗・当月徴収に限定しています。</p>
+        <div class="onboard-kicker">STEP 1</div>
+        <h4>いつもの給与の形をつくる</h4>
+        <p class="onboard-lead">サロン名と、普段使っている歩合率だけ入れてください。</p>
         <div class="onboard-grid">
-          <div class="onboard-field"><label>サロン名</label><input id="obSalonName" placeholder="例：airchair salon"></div>
-          <div class="onboard-field"><label>都道府県</label><select id="obPrefecture"></select></div>
-          <div class="onboard-field"><label>お店の形態</label><select id="obLegal"><option value="法人">法人・会社</option><option value="個人非適用">個人のお店</option><option value="個人任意">個人だが社会保険に加入</option></select></div>
-          <div class="onboard-field"><label>給与をまとめる店舗数</label><select id="obShopCount"><option value="single">1店舗</option><option value="multi">複数店舗</option></select></div>
-          <div class="onboard-field"><label>社会保険料を引く時期</label><select id="obSocialCollection"><option value="current">当月分を当月給与から引く</option><option value="next">当月分を翌月給与から引く</option><option value="unknown">分からない</option></select></div>
-          <div class="onboard-field"><label>給与の支給日</label><input id="obPayDate" type="date"></div>
-        </div>
-        <div class="onboard-note">複数店舗・翌月徴収は現在のβ版では誤計算を防ぐため先へ進めません。対応前に「使える」と見せない設計です。</div>
-      </section>
-      <section class="onboard-step" data-step="2">
-        <h4>いつもの給与ルールを入れます</h4>
-        <p class="onboard-lead">毎月変わる売上ではなく、翌月も引き継ぐ歩合率をここで決めます。</p>
-        <div class="onboard-grid">
-          <div class="onboard-field onboard-wide"><label>在籍している給与タイプ</label><div class="onboard-checks"><label><input id="obHasMonthly" type="checkbox" checked>月給の従業員</label><label><input id="obHasHourly" type="checkbox">時給の従業員</label></div></div>
-          <div class="onboard-field"><label>技術歩合の決め方</label><select id="obTechModel" onchange="setOnboardTechFields()"><option value="flat">一律の率</option><option value="tiered">売上に応じて率が変わる</option></select></div>
-          <div class="onboard-field"><label>売上は税込・税抜どちらで判定？</label><select id="obSalesBasis"><option value="excl">税抜（税込÷1.1）</option><option value="incl">税込のまま</option></select></div>
+          <div class="onboard-field onboard-wide"><label>サロン名</label><input id="obSalonName" placeholder="例：airchair salon" autocomplete="organization"></div>
+          <div class="onboard-field onboard-wide"><label>技術歩合はどちらですか？</label><input id="obTechModel" type="hidden" value="flat"><div class="pay-shape-options"><button type="button" data-model="flat" onclick="chooseOnboardTech('flat')"><b>いつも同じ率</b><span>例：技術売上 × 35%</span></button><button type="button" data-model="tiered" onclick="chooseOnboardTech('tiered')"><b>売上で率が変わる</b><span>例：100万円で35%、150万円で40%</span></button></div></div>
           <div id="obFlatFields" class="onboard-field onboard-wide"><label>技術歩合率（%）</label><input id="obTechRate" type="number" min="0" max="100" step="0.5" value="35"></div>
           <div id="obTierFields" class="onboard-wide hidden">
-            <div class="onboard-grid">
-              <div class="onboard-field"><label>1段階目：売上上限（円）</label><input id="obTier1Max" type="number" value="600000"></div>
-              <div class="onboard-field"><label>1段階目：率（%）</label><input id="obTier1Rate" type="number" step="0.5" value="30"></div>
-              <div class="onboard-field"><label>2段階目：売上上限（円）</label><input id="obTier2Max" type="number" value="1000000"></div>
-              <div class="onboard-field"><label>2段階目：率（%）</label><input id="obTier2Rate" type="number" step="0.5" value="35"></div>
-              <div class="onboard-field onboard-wide"><label>2段階目を超えた売上の率（%）</label><input id="obTier3Rate" type="number" step="0.5" value="40"></div>
+            <div class="tier-quick-grid">
+              <div><label>60万円まで</label><span><input id="obTier1Max" type="number" value="600000"><em>円まで</em></span><span><input id="obTier1Rate" type="number" step="0.5" value="30"><em>%</em></span></div>
+              <div><label>100万円まで</label><span><input id="obTier2Max" type="number" value="1000000"><em>円まで</em></span><span><input id="obTier2Rate" type="number" step="0.5" value="35"><em>%</em></span></div>
+              <div><label>それを超えたら</label><span class="tier-empty">上限なし</span><span><input id="obTier3Rate" type="number" step="0.5" value="40"><em>%</em></span></div>
             </div>
           </div>
-          <div class="onboard-field"><label>店販歩合率（%）</label><input id="obRetailRate" type="number" min="0" max="100" step="0.5" value="10"></div>
+          <div class="onboard-field onboard-wide retail-quick"><label>店販歩合率（%）</label><div><input id="obRetailRate" type="number" min="0" max="100" step="0.5" value="10" oninput="$('obRetailPreview').textContent=(this.value||0)+'%'"><span>店販売上 × <b id="obRetailPreview">10%</b></span></div></div>
         </div>
-        <div class="onboard-note">来月は技術売上・店販売上だけをスタッフごとに入力すると、この率で自動計算します。</div>
+        <details class="onboard-detail"><summary>計算の基準を確認する</summary><div class="onboard-field" style="margin-top:12px"><label>歩合はどちらの売上で計算しますか？</label><select id="obSalesBasis"><option value="excl">税抜売上（一般的）</option><option value="incl">税込売上</option></select></div></details>
       </section>
-      <section class="onboard-step" data-step="3">
-        <h4>スタッフの固定条件を入れます</h4>
-        <p class="onboard-lead">氏名・基本給（または時給）・役職手当だけ先に登録します。売上は毎月変わるため、ここでは入れません。</p>
+      <section class="onboard-step" data-step="2">
+        <div class="onboard-kicker">STEP 2</div>
+        <h4>スタッフを登録する</h4>
+        <p class="onboard-lead">毎月変わらない金額だけ入れます。売上は次の画面です。</p>
         <div id="onboardStaffRows" class="onboard-staff"></div>
         <div class="btnrow"><button class="btn ghost sm" onclick="addOnboardStaffRow()">＋ スタッフを追加</button></div>
-        <div class="onboard-note">住民税の通知額・標準報酬月額・保険加入状況・生年月日は、推測できない情報です。反映後の「スタッフ設定」で通知書を見ながら確認します。</div>
-      </section>
-      <section class="onboard-step" data-step="4">
-        <h4>反映する内容を確認してください</h4>
-        <p class="onboard-lead">給与ルールと、売上を入れたときの技術・店販歩合の例を確認します。</p>
-        <div id="onboardSummary" class="onboard-summary"></div>
-        <div id="onboardExamples" class="onboard-examples"></div>
-        <div class="onboard-confirm"><label><input id="obScopeConfirm" type="checkbox">この店は、1店舗の月給・時給従業員が対象で、今月は役員・業務委託・面貸し・月中入退社・産休育休・固定残業・深夜／法定休日などの特殊ケースがないことを確認しました</label></div>
-        <div class="onboard-note"><b>反映後に必要なもの：</b> 住民税の通知書、標準報酬月額の通知書、各スタッフの生年月日・保険加入状況。これらが未確認のまま給与確定はできません。</div>
+        <div class="quick-next-preview"><span>次にすること</span><b>スタッフごとの技術売上・店販売上を入力</b></div>
       </section>
       <div id="onboardError" class="onboard-error"></div>
     </div>
     <div class="onboard-foot">
       <button id="onboardBack" class="btn ghost" onclick="onboardBack()" style="visibility:hidden">戻る</button>
       <div class="spacer"></div>
-      <button id="onboardSkip" class="btn ghost" onclick="closeWizard(true)">あとで自分で設定</button>
+      <button id="onboardSkip" class="btn ghost" onclick="closeWizard(true)">今のデータで続ける</button>
       <button id="onboardNext" class="btn" onclick="onboardNext()">次へ</button>
     </div>
   </div>
@@ -1470,7 +1469,9 @@ function setOnboardTechFields(){
   const tier=$('obTechModel')&&$('obTechModel').value==='tiered';
   if($('obFlatFields'))$('obFlatFields').classList.toggle('hidden',tier);
   if($('obTierFields'))$('obTierFields').classList.toggle('hidden',!tier);
+  document.querySelectorAll('.pay-shape-options button').forEach(b=>b.classList.toggle('sel',b.dataset.model===(tier?'tiered':'flat')));
 }
+function chooseOnboardTech(model){ if(!$('obTechModel'))return; $('obTechModel').value=model; setOnboardTechFields(); }
 function updateOnboardStaffMoney(row){
   const hourly=row.querySelector('.ob-type').value==='assist';
   const label=row.querySelector('.ob-money-label'); if(label)label.textContent=hourly?'時給（円）':'基本給（円／月）';
@@ -1479,7 +1480,7 @@ function updateOnboardStaffMoney(row){
 function addOnboardStaffRow(v={}){
   const box=$('onboardStaffRows'); if(!box)return;
   const row=document.createElement('div'); row.className='onboard-staff-row'; row.dataset.rowId=String(++onboardStaffSeq); if(v.id)row.dataset.staffId=v.id;
-  const role=v.role||(($('obHasHourly')&&$('obHasHourly').checked&&!($('obHasMonthly')&&$('obHasMonthly').checked))?'assist':'staff');
+  const role=v.role||'staff';
   row.innerHTML=`<div class="ob-name"><label>氏名</label><input class="ob-staff-name" value="${escHtml(v.name||'')}" placeholder="例：山田 花子"></div>
     <div><label>給与タイプ</label><select class="ob-type" onchange="updateOnboardStaffMoney(this.closest('.onboard-staff-row'))"><option value="staff" ${role==='staff'?'selected':''}>月給</option><option value="assist" ${role==='assist'?'selected':''}>時給</option></select></div>
     <div><label class="ob-money-label">基本給（円／月）</label><input class="ob-money" type="number" min="0" value="${num(v.money)||''}"></div>
@@ -1503,11 +1504,7 @@ function fillOnboardPrefectures(){
   dst.replaceChildren(...[...src.options].map(o=>o.cloneNode(true))); dst.value=src.value||'東京都';
 }
 function prefillOnboarding(){
-  fillOnboardPrefectures();
-  $('obSalonName').value=($('salonName').value||'').trim(); $('obLegal').value=$('shakaiApply').value||'法人';
-  $('obShopCount').value=$('shopCount').value||'single'; $('obSocialCollection').value=$('socialCollection').value||'current';
-  $('obPayDate').value=$('payDate').value||''; $('obPrefecture').value=$('prefecture').value||'東京都';
-  $('obHasMonthly').checked=!$('stType_staff')||$('stType_staff').checked; $('obHasHourly').checked=!!($('stType_assist')&&$('stType_assist').checked);
+  $('obSalonName').value=($('salonName').value||'').trim();
   $('obTechModel').value=($('techModel').value==='tiered')?'tiered':'flat'; $('obSalesBasis').value=$('salesBasis').value||'excl';
   $('obTechRate').value=num($('techRate').value)||35; $('obRetailRate').value=num($('retailRate').value)||10;
   const tiers=[...document.querySelectorAll('.tier-row')];
@@ -1518,70 +1515,45 @@ function prefillOnboarding(){
   $('onboardStaffRows').innerHTML=''; onboardStaffSeq=0;
   const meaningful=staff.filter(s=>s&&(String(s.name||'').trim()||num(s.base)>0||num(s.hourlyWage)>0||num((s.allowanceAmounts||{})['allow-role'])>0));
   (meaningful.length?meaningful:[{name:'',wageType:'monthly',base:180000}]).forEach(s=>addOnboardStaffRow({id:s.id,name:s.name,role:roleOf(s),money:roleOf(s)==='assist'?num(s.hourlyWage):num(s.base)||num($('baseSalary').value)||180000,roleAmount:roleAllow?num((s.allowanceAmounts||{})[roleAllow.id]??(s.allowanceAmounts||{})[roleAllow.name]):0}));
-  $('obScopeConfirm').checked=false; setOnboardTechFields();
+  setOnboardTechFields();
 }
 function showOnboardStep(n){
-  onboardStep=Math.max(1,Math.min(4,n)); $('onboardError').textContent='';
+  onboardStep=Math.max(1,Math.min(2,n)); $('onboardError').textContent='';
   document.querySelectorAll('.onboard-step').forEach(s=>s.classList.toggle('active',Number(s.dataset.step)===onboardStep));
   document.querySelectorAll('#onboardProgress button').forEach((b,i)=>{b.classList.toggle('active',i+1===onboardStep);b.classList.toggle('done',i+1<onboardStep);});
   $('onboardBack').style.visibility=onboardStep===1?'hidden':'visible'; $('onboardSkip').style.display=onboardStep===1?'':'none';
-  $('onboardNext').textContent=onboardStep===4?'この内容を反映する':'次へ';
-  if(onboardStep===4)renderOnboardSummary();
+  $('onboardNext').textContent=onboardStep===2?'今月の売上入力を始める':'スタッフ登録へ';
   const body=document.querySelector('#setupWizard .onboard-body'); if(body)body.scrollTop=0;
 }
 function validateOnboardStep(step){
   let msg='';
   if(step===1){
     if(!$('obSalonName').value.trim())msg='サロン名を入力してください。';
-    else if(!$('obPrefecture').value)msg='都道府県を選んでください。';
-    else if($('obShopCount').value!=='single')msg='複数店舗は現在のβ版では計算できません。店舗ごとに分ける設計が必要です。';
-    else if($('obSocialCollection').value!=='current')msg='翌月徴収・不明の状態では誤計算を防ぐため先へ進めません。顧問社労士等へ徴収時期を確認してください。';
-  }else if(step===2){
-    if(!$('obHasMonthly').checked&&!$('obHasHourly').checked)msg='月給または時給の従業員を1つ以上選んでください。';
     else if(num($('obRetailRate').value)<0||num($('obRetailRate').value)>100)msg='店販歩合率は0〜100%で入力してください。';
     else if($('obTechModel').value==='flat'&&(num($('obTechRate').value)<0||num($('obTechRate').value)>100))msg='技術歩合率は0〜100%で入力してください。';
     else if($('obTechModel').value==='tiered'&&(!(num($('obTier1Max').value)>0)||!(num($('obTier2Max').value)>num($('obTier1Max').value))))msg='段階歩合の売上上限は、小さい順になるよう入力してください。';
     else if($('obTechModel').value==='tiered'&&[num($('obTier1Rate').value),num($('obTier2Rate').value),num($('obTier3Rate').value)].some(v=>v<0||v>100))msg='段階歩合率は0〜100%で入力してください。';
-  }else if(step===3){
+  }else if(step===2){
     const rows=onboardStaffValues();
     if(!rows.length)msg='スタッフを1人以上登録してください。';
     else if(rows.some(r=>!r.name))msg='すべてのスタッフの氏名を入力してください。';
     else if(rows.some(r=>r.money<=0))msg='すべてのスタッフの基本給または時給を入力してください。';
     else if(rows.some(r=>r.roleAmount<0))msg='役職手当は0円以上で入力してください。';
-    else if(rows.some(r=>r.role==='staff')&&!$('obHasMonthly').checked)msg='月給スタッフがいます。前の画面で「月給の従業員」にチェックしてください。';
-    else if(rows.some(r=>r.role==='assist')&&!$('obHasHourly').checked)msg='時給スタッフがいます。前の画面で「時給の従業員」にチェックしてください。';
-  }else if(step===4&&!$('obScopeConfirm').checked)msg='対象範囲と特殊ケースがないことを確認してください。';
+  }
   $('onboardError').textContent=msg; return !msg;
 }
-function onboardTechExample(salesIncl){
-  const base=$('obSalesBasis').value==='excl'?salesIncl/1.1:salesIncl;
-  let rate=num($('obTechRate').value);
-  if($('obTechModel').value==='tiered'){
-    if(base<=num($('obTier1Max').value))rate=num($('obTier1Rate').value);
-    else if(base<=num($('obTier2Max').value))rate=num($('obTier2Rate').value);
-    else rate=num($('obTier3Rate').value);
-  }
-  return {rate,amount:base*rate/100};
-}
-function renderOnboardSummary(){
-  const people=onboardStaffValues(), model=$('obTechModel').value, r1=onboardTechExample(1000000),r2=onboardTechExample(1500000);
-  const rule=model==='flat'?`技術売上 × ${num($('obTechRate').value)}%`:`段階歩合 ${num($('obTier1Rate').value)}% → ${num($('obTier2Rate').value)}% → ${num($('obTier3Rate').value)}%`;
-  $('onboardSummary').innerHTML=`<div><span>サロン</span><b>${escHtml($('obSalonName').value.trim())}／${escHtml($('obPrefecture').value)}</b></div><div><span>登録スタッフ</span><b>${people.length}人（月給 ${people.filter(p=>p.role==='staff').length}／時給 ${people.filter(p=>p.role==='assist').length}）</b></div><div><span>技術歩合</span><b>${rule}</b></div><div><span>店販歩合</span><b>店販売上 × ${num($('obRetailRate').value)}%</b></div>`;
-  const retailBase=$('obSalesBasis').value==='excl'?100000/1.1:100000, retail=retailBase*num($('obRetailRate').value)/100;
-  $('onboardExamples').innerHTML=`<div class="onboard-example"><span>技術売上 100万円なら（${r1.rate}%）</span><b>${yen(r1.amount)}</b></div><div class="onboard-example"><span>技術売上 150万円なら（${r2.rate}%）</span><b>${yen(r2.amount)}</b></div><div class="onboard-example"><span>店販売上 10万円なら</span><b>${yen(retail)}</b></div>`;
-}
-function onboardNext(){ if(!validateOnboardStep(onboardStep))return; if(onboardStep<4){showOnboardStep(onboardStep+1);return;} applyOnboarding(); }
+function onboardNext(){ if(!validateOnboardStep(onboardStep))return; if(onboardStep<2){showOnboardStep(onboardStep+1);return;} applyOnboarding(); }
 function onboardBack(){ if(onboardStep>1)showOnboardStep(onboardStep-1); }
 function openWizard(){ const ov=$('setupWizard'); if(!ov)return; prefillOnboarding(); showOnboardStep(1); ov.classList.add('on'); }
-function closeWizard(markDone){ const ov=$('setupWizard'); if(ov)ov.classList.remove('on'); if(markDone){try{localStorage.setItem('salonWizardDone','1');localStorage.setItem('salonOnboardingR9Done','1');}catch(e){}} }
+function closeWizard(markDone){ const ov=$('setupWizard'); if(ov)ov.classList.remove('on'); if(markDone){try{localStorage.setItem('salonWizardDone','1');localStorage.setItem('salonOnboardingR9Done','1');localStorage.setItem('salonOnboardingR10Done','1');}catch(e){}} }
 function applyOnboarding(){
-  if(!validateOnboardStep(4))return;
+  if(!validateOnboardStep(2))return;
   let hadSaved=false;try{hadSaved=!!localStorage.getItem('salonPayrollV1');}catch(_){ }
   if(hadSaved&&staff.some(s=>String(s.name||'').trim())&&!confirm('既存のスタッフ固定設定を、この回答内容で更新します。今月の売上と確定済み記録は保持します。続けますか？'))return;
   const people=onboardStaffValues(), oldById=new Map(staff.map(s=>[s.id,s])), wasLoaded=window.__loaded; window.__loaded=false;
-  $('salonName').value=$('obSalonName').value.trim(); $('prefecture').value=$('obPrefecture').value; $('shakaiApply').value=$('obLegal').value; $('shopCount').value='single'; $('socialCollection').value='current';
-  if($('obPayDate').value)$('payDate').value=$('obPayDate').value;
-  $('simpleRulesConfirmed').checked=true; $('scopeConfirmed').checked=true; $('noSpecialCasesConfirmed').checked=true;
+  $('salonName').value=$('obSalonName').value.trim();
+  if(!$('shopCount').value)$('shopCount').value='single';
+  $('simpleRulesConfirmed').checked=false; $('scopeConfirmed').checked=false; $('noSpecialCasesConfirmed').checked=false;
   $('stType_staff').checked=people.some(p=>p.role==='staff'); $('stType_assist').checked=people.some(p=>p.role==='assist');
   $('payMode').value='sales'; payModeExplicit=false; $('salesBasis').value=$('obSalesBasis').value; $('techModel').value=$('obTechModel').value; $('techRate').value=num($('obTechRate').value); $('retailRate').value=num($('obRetailRate').value);
   document.querySelector('input[name="tierMode"][value="whole"]').checked=true;
@@ -1593,7 +1565,7 @@ function applyOnboarding(){
     s.allowanceAmounts=s.allowanceAmounts||{};s.allowanceAmounts['allow-role']=p.roleAmount;s.inputDone=false;s.reviewed=false;
   });
   window.__loaded=wasLoaded; activeMonth=targetMonth(); captureMonthlyDraft(activeMonth); applyPref(); applyShopType(); $('techModel').onchange(); refreshPayModeUI(); invalidatePayrollChecks(); renderMaster(); renderStaff(); calcAll(); refreshFlowUI(); saveState();
-  closeWizard(true); const notice=$('onboardingAppliedNotice');if(notice)notice.classList.remove('hidden'); switchTab('master'); window.scrollTo(0,0); window.__onboardingApplied=true;
+  closeWizard(true); const notice=$('onboardingAppliedNotice');if(notice)notice.classList.add('hidden'); switchTab('input'); window.scrollTo(0,0); window.__onboardingApplied=true;
 }
 
 /* ---------- guided-flow r2: 台帳・月次・確認・確定 ---------- */
@@ -1625,6 +1597,27 @@ function masterBlockersFor(s,i){
     if(cfg.shakaiApply!=='個人非適用'&&s.shakai!==false&&!s.stdConfirmed) a.push('標準報酬月額の通知額が未確認です');
     if(s.taxCol&&s.taxCol!=='甲') a.push('乙・丙欄は今回の安全対象外です');
   }
+  return a;
+}
+function masterCoreBlockersFor(s){
+  const cfg=getConfig(),a=[];
+  if(s.contract==='業務委託')a.push('業務委託・面貸しは現在の対象外です');
+  if(!String(s.name||'').trim())a.push('氏名が未入力です');
+  if(s.contract!=='業務委託'){
+    if(s.wageType==='hourly'){if(num(s.hourlyWage)<=0)a.push('時給が未入力です');}
+    else if(resolvedBase(s,cfg)<=0)a.push('基本給が未入力です');
+  }
+  return a;
+}
+function monthlyEntryBlockersFor(s){
+  const a=[];if(s.contract==='業務委託')return a;
+  const cfg=getConfig(),usesCommission=s.wageType!=='hourly'||!!s.assistHasComm;
+  if(usesCommission&&cfg.payMode==='sales'&&!s.techEntered)a.push('技術売上が未入力です（0円の月も0を入力）');
+  if(usesCommission&&cfg.payMode==='sales'&&!s.retailEntered)a.push('店販売上が未入力です（0円の月も0を入力）');
+  if(usesCommission&&cfg.payMode==='amount'&&!s.commEntered)a.push('今月の歩合給が未入力です（0円の月も0を入力）');
+  if(s.wageType==='hourly'&&num(s.normalHours)<=0)a.push('今月の所定内労働時間が未入力です');
+  if(num(s.workDays)<=0)a.push('今月の勤務日数が未入力です');
+  if(s.wageType!=='hourly'&&num(s.workedHours)<=0)a.push('今月の労働時間が未入力です');
   return a;
 }
 function monthlyBlockersFor(s){
@@ -1684,14 +1677,21 @@ function allFlowBlockers(includeReview=true,includeOutput=true){
 }
 /* ホームは「今の工程」だけを案内する。未来の未完了作業を現在のエラー件数へ混ぜない。 */
 function currentFlowState(){
-  const global=globalFlowBlockers();
-  if(global.length) return {stage:'setup',title:'店舗ルールを確認',action:'setup',button:'店舗ルールを確認',issues:global.map(text=>({text,action:'setup'})),problem:true};
-  const master=[]; staff.forEach((s,i)=>masterBlockersFor(s,i).forEach(text=>master.push({text:`${s.name||`スタッフ${i+1}`}：${text}`,action:'master',staffIndex:i})));
-  if(master.length) return {stage:'master',title:'スタッフ設定を確認',action:'master',button:'スタッフ設定を確認',issues:master,problem:true};
-  const monthly=[]; staff.forEach((s,i)=>[...monthlyBlockersFor(s).filter(text=>text!=='今月の入力完了が押されていません'),...calcSafetyBlockersFor(s)].forEach(text=>monthly.push({text:`${s.name||`スタッフ${i+1}`}：${text}`,action:'input',staffIndex:i})));
-  if(monthly.length) return {stage:'input',title:'今月の入力を確認',action:'input',button:'入力場所を開く',issues:monthly,problem:true};
+  const core=[];
+  if(!targetMonth()||!isSupportedMonth())core.push({text:!targetMonth()?'対象月が未設定です':`対象月 ${targetMonth()} は現在の制度データ対応範囲外です`,action:'setup'});
+  if(!staff.length)core.push({text:'スタッフが登録されていません',action:'master'});
+  staff.forEach((s,i)=>masterCoreBlockersFor(s).forEach(text=>core.push({text:`${s.name||`スタッフ${i+1}`}：${text}`,action:'master',staffIndex:i})));
+  if(core.length)return {stage:'master',title:'最初の設定を確認',action:core[0].action,button:'入力場所を開く',issues:core,problem:true};
+  const monthly=[]; staff.forEach((s,i)=>monthlyEntryBlockersFor(s).forEach(text=>monthly.push({text:`${s.name||`スタッフ${i+1}`}：${text}`,action:'input',staffIndex:i})));
+  if(monthly.length) return {stage:'input',title:'今月の売上・店販を入力',action:'input',button:'売上・店販を入力',issues:monthly,problem:false};
   const pending=staff.map((s,i)=>({s,i})).filter(x=>!x.s.inputDone);
   if(pending.length) return {stage:'input',title:'今月の売上・店販を入力',action:'input',button:'売上・店販を入力',issues:pending.map(x=>({text:`${x.s.name||`スタッフ${x.i+1}`}：今月の入力がまだ完了していません`,action:'input',staffIndex:x.i})),problem:false};
+  const safety=globalFlowBlockers().map(text=>({text,action:'setup'}));
+  staff.forEach((s,i)=>{
+    masterBlockersFor(s,i).filter(text=>!masterCoreBlockersFor(s).includes(text)).forEach(text=>safety.push({text:`${s.name||`スタッフ${i+1}`}：${text}`,action:'master',staffIndex:i}));
+    [...monthlyBlockersFor(s).filter(text=>text!=='今月の入力完了が押されていません'&&!monthlyEntryBlockersFor(s).includes(text)),...calcSafetyBlockersFor(s)].forEach(text=>safety.push({text:`${s.name||`スタッフ${i+1}`}：${text}`,action:'input',staffIndex:i}));
+  });
+  if(safety.length)return {stage:'safety',title:'給与を確定する前の確認',action:safety[0].action,button:'必要な確認を始める',issues:safety,problem:true};
   const review=staff.map((s,i)=>({s,i})).filter(x=>!x.s.reviewed);
   if(review.length) return {stage:'review',title:'給与内容を確認',action:'review',button:'給与内容を確認',issues:review.map(x=>({text:`${x.s.name||`スタッフ${x.i+1}`}：支給・控除・手取りが未確認です`,action:'review',staffIndex:x.i})),problem:false};
   return {stage:'final',title:isMonthFinalized()?'今月の給与は確定済み':'今月の給与を確定',action:'review',button:isMonthFinalized()?'明細・出力へ':'確認・確定へ',issues:[],problem:false};
@@ -1797,14 +1797,14 @@ function renderDashboard(){
   $('scopeBanner').innerHTML=flow.issues.length?`<summary>${escHtml(flow.title)}：${flow.issues.length}件</summary><div class="scope-detail">${flow.issues.map(x=>`<div class="flow-issue"><span>${escHtml(x.text)}</span><button type="button" onclick="openFlowIssue('${x.action}',${x.staffIndex==null?'null':x.staffIndex})">入力場所へ</button></div>`).join('')}</div>`:'';
   let title,text,action,buttonText;
   if(fin){title='今月の給与は確定済みです';text='給与明細・振込データは「確認・確定」から出力できます。';action='review';buttonText='明細・出力へ';}
-  else {title=flow.title;text=flow.stage==='setup'?'最初に、安全に計算できる店舗条件と歩合ルールを確認します。':flow.stage==='master'?'基本給・役職手当・住民税・保険の通知額をスタッフごとに確認します。':flow.stage==='input'?'引き継いだ固定条件を見ながら、今月の技術売上・店販売上・勤怠だけを入れます。':'支給・控除・手取りを1人ずつ確認し、全員が終わったら確定します。';action=flow.action;buttonText=flow.button;}
+  else {title=flow.title;text=flow.stage==='safety'?'売上入力のあとに、通知書を見ながら税・保険の情報を確認します。':flow.stage==='master'?'氏名と基本給だけ確認すれば、今月の売上入力へ進めます。':flow.stage==='input'?'スタッフごとに、今月の技術売上・店販売上・勤怠を入れます。':'支給・控除・手取りを1人ずつ確認し、全員が終わったら確定します。';action=flow.action;buttonText=flow.button;}
   $('dashTitle').textContent=title;$('dashText').textContent=text;$('dashAction').dataset.next=action;$('dashAction').textContent=buttonText;
   const rule=$('inputCommissionRule'); if(rule){
     const tech=commissionRuleText(cfg,null);
     const retail=cfg.payMode==='amount'?'':` ／ 店販売上 × ${num(cfg.retailRate*100)}%`;
     rule.textContent=tech+retail;
   }
-  const tasks=[['スタッフ設定',masterReady===staff.length,`${masterReady}/${staff.length}人`],['売上・店販・勤怠の入力',inputDone===staff.length,`${inputDone}/${staff.length}人`],['給与内容の確認',reviewed===staff.length,`${reviewed}/${staff.length}人`],['今月を確定',fin,fin?'確定済み':'未確定']];
+  const tasks=[['売上・店販・勤怠を入力',inputDone===staff.length,`${inputDone}/${staff.length}人`],['税・保険の情報を確認',masterReady===staff.length,`${masterReady}/${staff.length}人`],['給与内容を確認',reviewed===staff.length,`${reviewed}/${staff.length}人`],['今月を確定',fin,fin?'確定済み':'未確定']];
   $('taskList').innerHTML=tasks.map((t,i)=>`<div class="next-item ${t[1]?'done':''}"><span class="dot">${t[1]?'✓':i+1}</span><div><b>${t[0]}</b><span>${t[2]}</span></div></div>`).join('');
 }
 function goNextTask(){ switchTab(($('dashAction')&&$('dashAction').dataset.next)||'master'); }
@@ -2810,8 +2810,8 @@ try{ const saved=localStorage.getItem('salonPayrollV1'); if(saved){ let o=JSON.p
   try{ switchTab('dashboard'); }catch(_){}
 } }catch(e){}
 try{ if(localStorage.getItem('salonOnboardDone')){ const o=document.getElementById('onboard'); if(o) o.style.display='none'; } }catch(e){}
-/* 初回（保存も完了フラグも無い＝まっさらな人）だけ、かんたん設定を自動で開く */
-try{ if(!localStorage.getItem('salonOnboardingR9Done') && !localStorage.getItem('salonPayrollV1')) openWizard(); }catch(e){}
+/* R10の2画面クイックスタートを1回だけ表示。既存データは事前入力し、適用時に上書き確認する。 */
+try{ if(!localStorage.getItem('salonOnboardingR10Done')) openWizard(); }catch(e){}
 /* 二重ナビ解消：設定済み(保存あり)の人は3ステップ帯を隠す＝タブ1系統で回す。初回だけ帯を出す */
 try{ if(localStorage.getItem('salonPayrollV1')){ var _wz=document.getElementById('wizard'); if(_wz) _wz.style.display='none';
   /* 前置き畳み：2回目以降は説明ステップ・信頼帯を隠して作業に直行（前置き過多の解消） */
